@@ -1,0 +1,184 @@
+@import 'tailwindcss';
+
+@theme inline {
+	--background-image-accent-glow: linear-gradient(
+		180deg,
+		var(--accent-2),
+		var(--accent),
+		var(--accent-3)
+	);
+
+	--color-bg: var(--bg);
+	--color-bg-elev: var(--bg-elev);
+	--color-bg-elev-2: var(--bg-elev-2);
+	--color-bg-input: var(--bg-input);
+	--color-bg-track: var(--bg-track);
+	--color-border: var(--border);
+	--color-border-strong: var(--border-strong);
+
+	--color-text: var(--text);
+	--color-text-2: var(--text-2);
+	--color-text-3: var(--text-3);
+	--color-text-4: var(--text-4);
+
+	--color-accent: var(--accent);
+	--color-accent-2: var(--accent-2);
+	--color-accent-3: var(--accent-3);
+
+	--color-danger: var(--danger);
+	--color-success: var(--success);
+
+	--radius-main: var(--radius);
+	--radius-main-sm: var(--radius-sm);
+	--radius-main-lg: var(--radius-lg);
+
+	--spacing-gap-custom: var(--gap);
+	--spacing-tap: var(--tap);
+
+	--font-sans: var(--font-sans);
+	--font-mono: var(--font-mono);
+
+	--shadow-sm: var(--shadow-sm);
+	--shadow-md: var(--shadow-md);
+	--shadow-lg: var(--shadow-lg);
+}
+
+:root {
+	--bg: #131420;
+	--bg-elev: #1b1d2e;
+	--bg-elev-2: #242639;
+	--bg-input: #1f2134;
+	--bg-track: #2c2e44;
+	--border: #2a2c40;
+	--border-strong: #3a3d56;
+	--text: #f3eef0;
+	--text-2: #cfc8d1;
+	--text-3: #8d8898;
+	--text-4: #5d5969;
+	--accent: #ff7a5c;
+	--accent-2: #5dd6c5;
+	--accent-3: #ffd166;
+	--danger: #ff5e5b;
+	--success: #5dd6c5;
+	--radius: 14px;
+	--radius-sm: 10px;
+	--radius-lg: 18px;
+	--gap: 12px;
+	--tap: 44px;
+	--font-sans: 'Geist', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+	--font-mono: 'Geist Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+	--shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.25);
+	--shadow-md: 0 4px 16px rgba(0, 0, 0, 0.35);
+	--shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+
+[data-theme='light'] {
+	--bg: #fdf6ee;
+	--bg-elev: #ffffff;
+	--bg-elev-2: #f4ebe0;
+	--bg-input: #f8f0e5;
+	--bg-track: #ebe0d2;
+	--border: #ecdfcd;
+	--border-strong: #d4c2a8;
+	--text: #1d1f2c;
+	--text-2: #3a3d4e;
+	--text-3: #6b6e80;
+	--text-4: #98a;
+	--accent: #ee5a3a;
+	--accent-2: #1aa794;
+	--accent-3: #d99019;
+}
+
+::-webkit-scrollbar {
+	width: 6px;
+	height: 6px;
+}
+::-webkit-scrollbar-thumb {
+	border-radius: 3px;
+	background: var(--border-strong);
+}
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+/* geist-regular - latin_latin-ext */
+@font-face {
+	font-display: swap;
+	font-family: 'Geist';
+	font-style: normal;
+	font-weight: 400;
+	src:
+		url('/fonts/geist-v5-latin_latin-ext-regular.woff2') format('woff2'),
+		url('/fonts/geist-v5-latin_latin-ext-regular.ttf') format('truetype');
+}
+/* geist-500 - latin_latin-ext */
+@font-face {
+	font-display: swap;
+	font-family: 'Geist';
+	font-style: normal;
+	font-weight: 500;
+	src:
+		url('/fonts/geist-v5-latin_latin-ext-500.woff2') format('woff2'),
+		url('/fonts/geist-v5-latin_latin-ext-500.ttf') format('truetype');
+}
+/* geist-600 - latin_latin-ext */
+@font-face {
+	font-display: swap;
+	font-family: 'Geist';
+	font-style: normal;
+	font-weight: 600;
+	src:
+		url('/fonts/geist-v5-latin_latin-ext-600.woff2') format('woff2'),
+		url('/fonts/geist-v5-latin_latin-ext-600.ttf') format('truetype');
+}
+
+/* geist-700 - latin_latin-ext */
+@font-face {
+	font-display: swap;
+	font-family: 'Geist';
+	font-style: normal;
+	font-weight: 700;
+	src:
+		url('/fonts/geist-v5-latin_latin-ext-700.woff2') format('woff2'),
+		url('/fonts/geist-v5-latin_latin-ext-700.ttf') format('truetype');
+}
+
+/* geist-mono-regular - latin_latin-ext */
+@font-face {
+	font-display: swap;
+	font-family: 'Geist Mono';
+	font-style: normal;
+	font-weight: 400;
+	src:
+		url('/fonts/geist-mono-v5-latin_latin-ext-regular.woff2') format('woff2'),
+		url('/fonts/geist-mono-v5-latin_latin-ext-regular.ttf') format('truetype');
+}
+/* geist-mono-500 - latin_latin-ext */
+@font-face {
+	font-display: swap;
+	font-family: 'Geist Mono';
+	font-style: normal;
+	font-weight: 500;
+	src:
+		url('/fonts/geist-mono-v5-latin_latin-ext-500.woff2') format('woff2'),
+		url('/fonts/geist-mono-v5-latin_latin-ext-500.ttf') format('truetype');
+}
+/* geist-mono-600 - latin_latin-ext */
+@font-face {
+	font-display: swap;
+	font-family: 'Geist Mono';
+	font-style: normal;
+	font-weight: 600;
+	src:
+		url('/fonts/geist-mono-v5-latin_latin-ext-600.woff2') format('woff2'),
+		url('/fonts/geist-mono-v5-latin_latin-ext-600.ttf') format('truetype');
+}
+
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
