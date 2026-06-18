@@ -105,6 +105,6 @@
 				</Button>
 			</div>
 		</div>
-		<TimeSlider />
+		<TimeSlider min={0} max={14} value={5} />
 	</div>
 </div>
