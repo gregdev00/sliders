@@ -9,7 +9,7 @@
 
 <Header onHelpClick={() => (helpModalOpen = true)} />
 
-<div class="grid grid-cols-[380px_1fr] gap-6 items-start px-5 py-4">
+<div class="grid desktop:grid-cols-[380px_1fr] gap-6 items-start px-5 py-4">
 	<div class="sticky top-32.5 self-start">
 		<CircularSlider />
 	</div>
