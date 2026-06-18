@@ -101,6 +101,11 @@
 	background: transparent;
 }
 
+.preload-no-transitions *,
+.preload-no-transitions {
+	transition: none !important;
+}
+
 /* geist-regular - latin_latin-ext */
 @font-face {
 	font-display: swap;

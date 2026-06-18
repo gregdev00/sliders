@@ -16,6 +16,8 @@
 			: 'dark';
 
 		document.documentElement.setAttribute('data-theme', savedTheme || systemTheme);
+		// Temporarily disable transitions on load to kill the FOUC flash
+		document.documentElement.classList.add('preload-no-transitions');
 	</script>
 </svelte:head>
 {@render children()}
