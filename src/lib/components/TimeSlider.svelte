@@ -68,7 +68,7 @@
 
 <div
 	bind:this={trackElement}
-	class="relative h-11 rounded-xl cursor-pointer select-none touch-none overflow-visible bg-bg-track"
+	class="relative h-11 rounded-xl cursor-pointer select-none touch-none overflow-visible bg-bg-track outline-accent"
 	tabindex="0"
 	role="slider"
 	aria-valuemin={min}

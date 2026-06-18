@@ -29,6 +29,6 @@
 	<TaskItem name="Sleep" />
 </div>
 <div class="relative flex gap-2 mb-6">
-	<Input bind:value={taskName} placeholder="Add a task..." />
+	<Input bind:value={taskName} name="taskName" placeholder="Add a task..." />
 	<Button color="danger" onclick={() => {}}>Add</Button>
 </div>
