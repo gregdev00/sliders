@@ -3,9 +3,10 @@
 		min?: number;
 		max?: number;
 		value: number;
+		color?: string;
 	}
 
-	let { min = 0, max = 14, value = $bindable(12.5) }: Props = $props();
+	let { min = 0, max = 100, value = $bindable(42), color = '#34a8eb' }: Props = $props();
 
 	let isDragging = $state(false);
 	let trackElement: HTMLDivElement | undefined = $state();
@@ -83,7 +84,7 @@
 	<div class="absolute inset-0 rounded-xl overflow-hidden">
 		<div
 			class="absolute rounded-xl left-0 top-0 bottom-0"
-			style="width: {percentage}%; background: linear-gradient(90deg, rgba(132, 204, 22, 0.4), rgb(132, 204, 22));"
+			style="width: {percentage}%; background: linear-gradient(90deg, {color}66, {color});"
 		></div>
 	</div>
 	<div

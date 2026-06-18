@@ -5,7 +5,17 @@
 	let isStarred = $state('false');
 	let isLocked = $state('false');
 
-	let { name } = $props();
+	interface Props {
+		id?: number;
+		name: string;
+		hours: number;
+		originalHours: number;
+		color: string;
+		locked: boolean;
+		actual: number;
+	}
+
+	let { id, name, hours, originalHours, color, locked, actual }: Props = $props();
 </script>
 
 <div class="opacity-100 transform-none duration-150">
@@ -16,7 +26,7 @@
 			<button
 				class="w-3.5 h-3.5 rounded-full border-[medium] bg-current border-current p-0 shrink-0 cursor-pointer shadow-[0_0_0_2px_rgba(132,204,22,0.2)]"
 				aria-label="Edit color"
-				style="color:rgb(132, 204, 22)"
+				style="color:{color}"
 			></button>
 			<div class="flex-1 min-w-0">
 				<div
@@ -29,7 +39,7 @@
 					<span>→</span>
 					<span>10:15</span>
 					<span class="opacity-40 mx-1 my-0">·</span>
-					<span class="font-medium" style="color: rgb(132, 204, 22)">2h 15m</span>
+					<span class="font-medium" style="color:{color}">2h 15m</span>
 				</div>
 			</div>
 			<div class="flex gap-0.5 shrink-0">
@@ -105,6 +115,6 @@
 				</Button>
 			</div>
 		</div>
-		<TimeSlider min={0} max={14} value={5} />
+		<TimeSlider min={0} max={14} value={5} {color} />
 	</div>
 </div>
