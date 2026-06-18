@@ -22,23 +22,32 @@
 		...restProps
 	}: Props = $props();
 
-	// Define our scale tokens
-	const sizes = {
-		sm: 'px-3 text-xs min-h-[32px]',
-		md: 'px-[18px] text-sm',
-		lg: 'px-6 text-base min-h-[48px]'
+	// Define scale tokens
+	const sizeSpecs = {
+		sm: 'text-xs min-h-[32px]',
+		md: 'text-sm min-h-[var(--tap)]',
+		lg: 'text-base min-h-[48px]'
+	};
+
+	// Define padding tokens
+	const paddings = {
+		sm: 'px-3',
+		md: 'px-[18px]',
+		lg: 'px-6'
 	};
 
 	// Use clsx to construct state profiles incrementally
 	let computedClasses = $derived(
 		clsx(
 			// Core structural configurations
-			'inline-flex items-center justify-center gap-2 min-h-[var(--tap)] rounded-main-sm',
+			'inline-flex items-center justify-center gap-2 rounded-main-sm',
 			'font-medium text-sm tracking-tight transition-all duration-150 ease-out',
 			'cursor-pointer select-none disabled:opacity-50 disabled:cursor-not-allowed',
 
+			sizeSpecs[size],
+
 			// Spatial dimensions (Square vs Regular padding scale)
-			iconOnly ? 'p-0 w-[var(--tap)]' : sizes[size],
+			iconOnly ? 'p-0 w-[var(--tap)]' : paddings[size],
 
 			// Dynamic Color Matrix mapped dynamically with the Outline flag
 			{
