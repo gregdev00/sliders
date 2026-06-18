@@ -1,6 +1,9 @@
 <script lang="ts">
 	import Button from './Button.svelte';
+	import Input from './Input.svelte';
 	import TaskItem from './TaskItem.svelte';
+
+	let taskName = $state('');
 </script>
 
 <div class="flex items-center justify-between mb-2.5">
@@ -24,4 +27,8 @@
 </div>
 <div class="opacity-100 transition-opacity duration-200">
 	<TaskItem name="Sleep" />
+</div>
+<div class="relative flex gap-2 mb-6">
+	<Input bind:value={taskName} placeholder="Add a task..." />
+	<Button color="danger" onclick={() => {}}>Add</Button>
 </div>
