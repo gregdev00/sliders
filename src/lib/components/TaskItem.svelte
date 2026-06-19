@@ -1,21 +1,9 @@
 <script lang="ts">
+	import type { Task } from '$lib/types/task';
 	import Button from './Button.svelte';
 	import TimeSlider from './TimeSlider.svelte';
 
-	let isStarred = $state('false');
-	let isLocked = $state('false');
-
-	interface Props {
-		id?: number;
-		name: string;
-		hours: number;
-		originalHours: number;
-		color: string;
-		locked: boolean;
-		actual: number;
-	}
-
-	let { id, name, hours, originalHours, color, locked, actual }: Props = $props();
+	let { id, name, hours, originalHours, color, locked, actual }: Task = $props();
 </script>
 
 <div class="opacity-100 transform-none duration-150">

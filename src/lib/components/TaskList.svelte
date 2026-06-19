@@ -1,55 +1,16 @@
 <script lang="ts">
+	import { taskService } from '$lib/services/TaskService.svelte';
 	import Button from './Button.svelte';
 	import Input from './Input.svelte';
 	import TaskItem from './TaskItem.svelte';
 
 	let taskName = $state('');
 
-	const PALETTE = [
-		'#ff7a5c',
-		'#5dd6c5',
-		'#ffd166',
-		'#a78bfa',
-		'#06b6d4',
-		'#f472b6',
-		'#84cc16',
-		'#fb923c',
-		'#60a5fa',
-		'#c084fc',
-		'#34d399',
-		'#fbbf24',
-		'#f87171'
-	];
-
-	const DEFAULT_TASKS = [
-		{
-			id: 1,
-			name: 'Sleep',
-			hours: 8,
-			originalHours: 8,
-			color: PALETTE[6],
-			locked: false,
-			actual: 0
-		},
-		{
-			id: 2,
-			name: 'Deep work',
-			hours: 4,
-			originalHours: 4,
-			color: PALETTE[0],
-			locked: false,
-			actual: 0
-		},
-		{
-			id: 3,
-			name: 'Movement',
-			hours: 1,
-			originalHours: 1,
-			color: PALETTE[1],
-			locked: false,
-			actual: 0
+	function handleTaskAdd(): void {
+		if (taskName && taskName.trim() !== '') {
+			taskService.addTask(taskName);
 		}
-	];
+	}
 </script>
 
 <div class="flex items-center justify-between mb-2.5">
@@ -72,7 +33,7 @@
 	</Button>
 </div>
 <div class="opacity-100 transition-opacity duration-200">
-	{#each DEFAULT_TASKS as task}
+	{#each taskService.tasks as task (task.id)}
 		<TaskItem
 			id={task.id}
 			name={task.name}
@@ -86,5 +47,5 @@
 </div>
 <div class="relative flex gap-2 mb-6">
 	<Input bind:value={taskName} name="taskName" placeholder="Add a task..." />
-	<Button color="danger" onclick={() => {}}>Add</Button>
+	<Button color="danger" onclick={handleTaskAdd}>Add</Button>
 </div>
