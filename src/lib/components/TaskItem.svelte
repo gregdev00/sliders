@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { taskService } from '$lib/services/TaskService.svelte';
 	import type { Task } from '$lib/types/task';
 	import Button from './Button.svelte';
 	import TimeSlider from './TimeSlider.svelte';
@@ -91,22 +92,24 @@
 						></path></svg
 					>
 				</Button>
-				<Button iconOnly outline size="sm" aria-label="Delete" onclick={() => ondelete(id)}>
-					<svg
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"
-						></line></svg
-					>
-				</Button>
+				{#if !locked}
+					<Button iconOnly outline size="sm" aria-label="Delete" onclick={() => ondelete(id)}>
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"
+							></line></svg
+						>
+					</Button>
+				{/if}
 			</div>
 		</div>
-		<TimeSlider min={0} max={14} value={5} {color} />
+		<TimeSlider min={0} max={14} value={hours} {color} />
 	</div>
 </div>
