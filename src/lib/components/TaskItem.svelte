@@ -3,7 +3,11 @@
 	import Button from './Button.svelte';
 	import TimeSlider from './TimeSlider.svelte';
 
-	let { id, name, hours, originalHours, color, locked, actual }: Task = $props();
+	interface Props extends Task {
+		ondelete: (id: number) => void;
+	}
+
+	let { id, name, hours, originalHours, color, locked, actual, ondelete }: Props = $props();
 </script>
 
 <div class="opacity-100 transform-none duration-150">
@@ -87,7 +91,7 @@
 						></path></svg
 					>
 				</Button>
-				<Button iconOnly outline size="sm" aria-label="Delete">
+				<Button iconOnly outline size="sm" aria-label="Delete" onclick={() => ondelete(id)}>
 					<svg
 						width="16"
 						height="16"

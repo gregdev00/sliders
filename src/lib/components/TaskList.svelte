@@ -34,15 +34,7 @@
 </div>
 <div class="opacity-100 transition-opacity duration-200">
 	{#each taskService.tasks as task (task.id)}
-		<TaskItem
-			id={task.id}
-			name={task.name}
-			hours={task.hours}
-			originalHours={task.originalHours}
-			color={task.color}
-			locked={task.locked}
-			actual={task.actual}
-		/>
+		<TaskItem {...task} ondelete={(id) => taskService.removeTask(id)} />
 	{/each}
 </div>
 <div class="relative flex gap-2 mb-6">

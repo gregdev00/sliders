@@ -58,6 +58,10 @@ class TaskService {
 
 		this.#tasks.push(task);
 	}
+
+	removeTask(id: number) {
+		this.#tasks = this.#tasks.filter((task) => task.id !== id);
+	}
 }
 
 export const taskService = new TaskService();

@@ -1,7 +1,7 @@
 import type { HexColor } from './hexColor';
 
 export interface Task {
-	id?: number;
+	id: number;
 	name: string;
 	hours: number;
 	originalHours: number;
