@@ -2,9 +2,15 @@
 	import Accordion from '$lib/components/Accordion.svelte';
 	import Button from '$lib/components/Button.svelte';
 	import Switch from '$lib/components/Switch.svelte';
+	import { STEPS } from '$lib/constants/stepSizes';
 	import { authService } from '$lib/services/AuthService.svelte';
+	import { settingsService } from '$lib/services/SettingsService.svelte';
 
 	import clsx from 'clsx';
+
+	function onSnapSizeClick(snapSize: number) {
+		settingsService.snapSize = snapSize;
+	}
 
 	async function onSignIn(): Promise<void> {
 		await authService.signInWithGoogle();
@@ -66,7 +72,14 @@
 			<div class="text-[11px] tracking-[0.06em] font-mono text-text-3 uppercase font-medium mb-2">
 				Snap size
 			</div>
-			TODO
+			<div class="grid grid-cols-4 gap-1.5 mb-2">
+				{#each STEPS as step}
+					<Button
+						color={settingsService.snapSize === step.minute ? 'accent' : 'base'}
+						onclick={() => onSnapSizeClick(step.minute)}>{step.label}</Button
+					>
+				{/each}
+			</div>
 			<div class="mb-4.5">
 				<div class="text-[11px] tracking-[0.06em] font-mono text-text-3 uppercase font-medium mb-2">
 					Account & sync
@@ -99,7 +112,7 @@
 							Sign in to sync your tasks, week plan and settings across all your devices. Your data
 							stays private — only you can read it.
 						</div>
-						<Button class="w-full" onclick={onSignIn}>
+						<Button class="w-full" onclick={onSignIn} disabled={authService.isSigningIn}>
 							<svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"
 								><path
 									fill="#FFC107"

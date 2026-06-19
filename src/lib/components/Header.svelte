@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import ThemeSwitcher from './ThemeSwitcher.svelte';
 	import Button from './Button.svelte';
+	import { settingsService } from '$lib/services/SettingsService.svelte';
 
 	interface Props {
 		onHelpClick: () => void;
@@ -19,7 +20,6 @@
 
 	// Set the initial state to the exact current time immediately
 	let currentTime = $state(getFormattedTime());
-	let step = 15;
 
 	function updateClock() {
 		currentTime = getFormattedTime();
@@ -43,7 +43,7 @@
 				<div class="flex gap-2 items-center text-[11px] text-text-3 mt-0.5 font-mono">
 					<span class="tabular-nums">{currentTime}</span>
 					<span class="opacity-40">·</span>
-					<span>{step}m</span>
+					<span>{settingsService.snapSize}m</span>
 				</div>
 			</div>
 		</div>
