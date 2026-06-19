@@ -58,7 +58,7 @@
 					<div class="text-[14px] font-medium">Show timeline</div>
 					<div class="text-[12px] text-text-3 mt-0.5">Linear strip below the donut</div>
 				</div>
-				<Switch checked={true} />
+				<Switch bind:checked={settingsService.showTimeline} />
 			</div>
 
 			<div class="text-[11px] tracking-[0.06em] font-mono text-text-3 uppercase font-medium mb-2">
