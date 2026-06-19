@@ -13,7 +13,7 @@
 	}
 </script>
 
-<Accordion isDefaultOpen>
+<Accordion>
 	{#snippet header({ toggle, isOpen })}
 		<Button
 			onclick={toggle}
