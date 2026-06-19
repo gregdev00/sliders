@@ -6,10 +6,10 @@
 	interface Props {
 		isOpen: boolean;
 		onClose?: () => void;
-		title?: string;
 		closeOnOutsideClick?: boolean;
 		closeOnEscape?: boolean;
 		size?: 'sm' | 'md' | 'lg' | 'xl';
+		header?: Snippet;
 		children?: Snippet;
 		footer?: Snippet;
 	}
@@ -17,10 +17,10 @@
 	let {
 		isOpen = $bindable(),
 		onClose,
-		title,
 		closeOnOutsideClick = true,
 		closeOnEscape = true,
 		size = 'md',
+		header,
 		children,
 		footer
 	}: Props = $props();
@@ -68,8 +68,8 @@
 			role="presentation"
 		>
 			<div class="flex items-center justify-between gap-4">
-				{#if title}
-					<h2 class="text-lg font-semibold tracking-tight text-text">{title}</h2>
+				{#if header}
+					{@render header()}
 				{:else}
 					<div></div>
 				{/if}
