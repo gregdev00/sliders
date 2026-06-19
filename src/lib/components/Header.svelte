@@ -32,7 +32,9 @@
 	});
 </script>
 
-<header class="sticky top-0 z-20 bg-bg border-b border-border">
+<header
+	class="sticky top-0 z-20 bg-bg border-b border-border transition-colors duration-300 ease-out"
+>
 	<div class="pt-4 px-5 pb-3 flex items-center justify-between gap-3">
 		<div class="flex items-center gap-2.5">
 			<div class="w-2 h-6 rounded-xs bg-accent-glow"></div>
