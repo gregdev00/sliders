@@ -5,7 +5,7 @@
 	import TimeSlider from './TimeSlider.svelte';
 
 	interface Props extends Task {
-		ondelete: (id: number) => void;
+		ondelete: (id: string) => void;
 	}
 
 	let { id, name, hours, originalHours, color, locked, actual, ondelete }: Props = $props();
