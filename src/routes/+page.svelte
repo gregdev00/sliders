@@ -43,6 +43,7 @@
 	let dayEnd = $state(5);
 	let nowHour = $state(3);
 	let dayLen = $state(4);
+	let taskStart = $state(1);
 
 	function handleDaySliderChange(start: number, end: number): void {
 		dayStart = start;
@@ -126,7 +127,7 @@
 			<Settings />
 		</div>
 		<div class="mb-3.5">
-			<TaskList />
+			<TaskList {dayLen} {taskStart} stepMinutes={settingsService.snapSize} />
 		</div>
 	</div>
 </div>

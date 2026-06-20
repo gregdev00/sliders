@@ -12,6 +12,18 @@
 			taskName = '';
 		}
 	}
+
+	function handleOnKeyDown(e: KeyboardEvent) {
+		if (e.key === 'Enter') handleTaskAdd();
+	}
+
+	interface Props {
+		taskStart: number;
+		dayLen: number;
+		stepMinutes: number;
+	}
+
+	let { taskStart, dayLen, stepMinutes }: Props = $props();
 </script>
 
 <div class="mb-3.5">
@@ -40,7 +52,13 @@
 	</div>
 	<div class="opacity-100 transition-opacity duration-200">
 		{#each taskService.tasks as task (task.id)}
-			<TaskItem {...task} ondelete={(id: string) => taskService.removeTask(id)} />
+			<TaskItem
+				{...task}
+				{taskStart}
+				{stepMinutes}
+				{dayLen}
+				onDelete={(id: string) => taskService.removeTask(id)}
+			/>
 		{:else}
 			<div class="text-center py-10 px-5 border border-dashed border-border rounded-main">
 				<div class="text-[14px] text-text-2 mb-1.5 font-medium">No tasks yet</div>
@@ -50,6 +68,11 @@
 	</div>
 </div>
 <div class="relative flex gap-2 mb-6">
-	<Input bind:value={taskName} name="taskName" placeholder="Add a task..." />
+	<Input
+		bind:value={taskName}
+		onkeydown={handleOnKeyDown}
+		name="taskName"
+		placeholder="Add a task..."
+	/>
 	<Button color="danger" onclick={handleTaskAdd}>Add</Button>
 </div>

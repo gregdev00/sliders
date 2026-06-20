@@ -1,19 +1,68 @@
 <script lang="ts">
-	import { taskService } from '$lib/services/TaskService.svelte';
 	import type { Task } from '$lib/types/task';
 	import Button from './Button.svelte';
 	import TimeSlider from './TimeSlider.svelte';
+	import clsx from 'clsx';
 
 	interface Props extends Task {
-		ondelete: (id: string) => void;
+		taskStart: number;
+		stepMinutes: number;
+		dayLen: number;
+		isActive?: boolean;
+		isFavourite?: boolean;
+		onDelete?: (id: string) => void;
+		onFavourite?: (id: string) => void;
+		onEdit?: (id: string) => void;
+		onLock?: (id: string) => void;
+		onChange?: (updatedFields: { hours: number }) => void;
+		onLongPressStart?: () => void;
+		onLongPressEnd?: () => void;
 	}
 
-	let { id, name, hours, originalHours, color, locked, actual, ondelete }: Props = $props();
+	let {
+		id,
+		name,
+		hours,
+		originalHours,
+		color,
+		locked,
+		actual,
+		taskStart,
+		stepMinutes,
+		dayLen,
+		isActive = true,
+		isFavourite = false,
+		onDelete,
+		onChange,
+		onLongPressStart,
+		onLongPressEnd
+	}: Props = $props();
+
+	const taskEnd = $derived(taskStart + hours);
+	const stepH = $derived(stepMinutes / 60);
+
+	const nudge = (dir: number) => {
+		if (locked) return;
+		const next = Math.max(0, Math.min(dayLen, hours + dir * stepH));
+		onChange?.({
+			hours: (Math.round((next * 60) / stepMinutes) * stepMinutes) / 60
+		});
+	};
 </script>
 
 <div class="opacity-100 transform-none duration-150">
 	<div
-		class="transition-[border-color_0.2s,box-shadow_0.2s] relative pt-3.5 pb-3 px-3.5 mb-2 select-none bg-bg-elev border border-border rounded-main overflow-hidden"
+		role="listitem"
+		class={clsx(
+			'transition-[border-color_0.2s,box-shadow_0.2s] relative pt-3.5 pb-3 px-3.5 mb-2 select-none bg-bg-elev border rounded-main overflow-hidden',
+			'border-border'
+		)}
+		style:border-color={isActive ? color : null}
+		style:box-shadow={isActive ? `0 0 0 1px ${color}55, 0 4px 16px ${color}22` : null}
+		onpointerdown={onLongPressStart}
+		onpointerup={onLongPressEnd}
+		onpointercancel={onLongPressEnd}
+		oncontextmenu={(e) => e.preventDefault()}
 	>
 		<div class="flex items-center gap-2.5 mb-2.5 relative">
 			<button
@@ -93,7 +142,7 @@
 					>
 				</Button>
 				{#if !locked}
-					<Button iconOnly outline size="sm" aria-label="Delete" onclick={() => ondelete(id)}>
+					<Button iconOnly outline size="sm" aria-label="Delete" onclick={() => onDelete?.(id)}>
 						<svg
 							width="16"
 							height="16"
