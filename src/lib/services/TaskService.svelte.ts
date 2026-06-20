@@ -18,7 +18,7 @@ class TaskService {
 		const color = colorValues[this.#tasks.length % colorValues.length];
 
 		const task: Task = {
-			id: Date.now() + Math.random(),
+			id: String(Date.now() + Math.random()),
 			name: name.trim(),
 			hours: 1,
 			originalHours: 1,
@@ -30,7 +30,7 @@ class TaskService {
 		this.#tasks.push(task);
 	}
 
-	removeTask(id: number) {
+	removeTask(id: string) {
 		this.#tasks = this.#tasks.filter((task) => task.id !== id);
 	}
 }

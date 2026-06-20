@@ -3,7 +3,7 @@ import { PALETTE } from '$lib/constants/colors';
 
 export const DEFAULT_TASKS: Task[] = [
 	{
-		id: 1,
+		id: '1',
 		name: 'Sleep',
 		hours: 8,
 		originalHours: 8,
@@ -12,7 +12,7 @@ export const DEFAULT_TASKS: Task[] = [
 		actual: 0
 	},
 	{
-		id: 2,
+		id: '2',
 		name: 'Deep work',
 		hours: 4,
 		originalHours: 4,
@@ -21,7 +21,7 @@ export const DEFAULT_TASKS: Task[] = [
 		actual: 0
 	},
 	{
-		id: 3,
+		id: '3',
 		name: 'Movement',
 		hours: 1,
 		originalHours: 1,

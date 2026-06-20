@@ -1,0 +1,12 @@
+export const CIRCULAR_SLIDER_CONFIG = {
+	RING_SIZE: 240,
+	RING_CX: 120,
+	RING_CY: 120,
+	RING_R: 100,
+	RING_THUMB: 14
+} as const;
+
+export const CIRCULAR_SLIDER_ANIMATION_CONFIG = {
+	LERP_RING: 0.2,
+	TOL_SLIDER: 0.005
+} as const;
