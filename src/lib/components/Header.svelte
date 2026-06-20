@@ -3,6 +3,8 @@
 	import ThemeSwitcher from './ThemeSwitcher.svelte';
 	import Button from './Button.svelte';
 	import { settingsService } from '$lib/services/SettingsService.svelte';
+	import SyncBadge from './SyncBadge.svelte';
+	import { authService } from '$lib/services/AuthService.svelte';
 
 	interface Props {
 		onHelpClick: () => void;
@@ -44,6 +46,9 @@
 					<span class="tabular-nums">{currentTime}</span>
 					<span class="opacity-40">·</span>
 					<span>{settingsService.snapSize}m</span>
+					{#if authService.isAuthenticated}
+						<SyncBadge class="ml-0.75" onlyCircle />
+					{/if}
 				</div>
 			</div>
 		</div>
