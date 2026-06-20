@@ -14,7 +14,6 @@
 	import { toastService } from '$lib/services/ToastService.svelte';
 
 	import { formatTime, formatHours } from '$lib/utils/formatUtils';
-	import Toast from '$lib/components/Toast.svelte';
 	import ToastList from '$lib/components/ToastList.svelte';
 
 	let helpModalOpen = $state(false);
