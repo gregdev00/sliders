@@ -26,13 +26,22 @@
 		{ shortcut: 'Shift +←/→', description: 'Big step' },
 		{ shortcut: 'Home / End', description: '0 / max' }
 	];
+
+	let dayStart = $state(2);
+	let dayEnd = $state(5);
+	let nowHour = $state(3);
+
+	function handleDaySliderChange(start: number, end: number): void {
+		dayStart = start;
+		dayEnd = end;
+	}
 </script>
 
 <Header onHelpClick={() => (helpModalOpen = true)} />
 
 <div class="grid desktop:grid-cols-[380px_1fr] gap-6 items-start px-5 py-4">
 	<div class="desktop:sticky desktop:top-32.5 desktop:self-start">
-		<CircularSlider />
+		<CircularSlider {dayStart} {dayEnd} {nowHour} onChange={handleDaySliderChange} />
 	</div>
 	<div>
 		<div class="mb-3.5">
