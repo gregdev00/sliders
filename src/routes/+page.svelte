@@ -6,9 +6,16 @@
 	import Settings from '$lib/components/Settings.svelte';
 	import ShortcutItem from '$lib/components/ShortcutItem.svelte';
 	import TaskList from '$lib/components/TaskList.svelte';
+	import Button from '$lib/components/Button.svelte';
 
 	import { CIRCULAR_SLIDER_CONFIG } from '$lib/constants/sliderConfig';
 	import { taskService } from '$lib/services/TaskService.svelte';
+	import { settingsService } from '$lib/services/SettingsService.svelte';
+	import { toastService } from '$lib/services/ToastService.svelte';
+
+	import { formatTime, formatHours } from '$lib/utils/formatUtils';
+	import Toast from '$lib/components/Toast.svelte';
+	import ToastList from '$lib/components/ToastList.svelte';
 
 	let helpModalOpen = $state(false);
 
@@ -46,6 +53,11 @@
 	function onSelectTask(id: string | null) {
 		selectedTaskId = id;
 	}
+
+	function setDayWindow(start: number, end: number) {
+		dayStart = start;
+		dayEnd = end;
+	}
 </script>
 
 <Header onHelpClick={() => (helpModalOpen = true)} />
@@ -67,6 +79,46 @@
 					selectedId={selectedTaskId}
 					{onSelectTask}
 				/>
+			</div>
+			<div class="flex items-center gap-2.5 mt-1.5 flex-wrap justify-center">
+				<div
+					class="font-mono text-[11px] font-medium text-text-3 bg-bg-elev-2 border border-border rounded-md px-1.5 py-0.5"
+				>
+					{formatTime(dayStart)} → {formatTime(dayEnd)}
+				</div>
+				<div class="text-[12px] text-text-3">·</div>
+				<div class="text-[13px] text-text-2">
+					{formatHours(dayLen)}
+				</div>
+				<div class="text-[12px] text-text-3">·</div>
+				<Button
+					size="sm"
+					outline
+					onclick={() => {
+						const now = new Date(),
+							m = now.getHours() * 60 + now.getMinutes();
+						const newStart = Math.min(
+							(Math.ceil(m / settingsService.snapSize) * settingsService.snapSize) / 60,
+							23.5
+						);
+						setDayWindow(newStart, dayEnd);
+						toastService.showToast('Start = now');
+					}}
+					class="min-h-32"
+				>
+					<svg
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg
+					>
+					Start now
+				</Button>
 			</div>
 		</div>
 	</div>
@@ -104,3 +156,5 @@
 		{/each}
 	</div>
 </Modal>
+
+<ToastList />
