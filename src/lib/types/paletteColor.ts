@@ -1,3 +1,6 @@
-import type { PALETTE } from '$lib/constants/colors';
+import type { HexColor } from './hexColor';
 
-export type PaletteColor = keyof typeof PALETTE;
+export interface PaletteColor {
+	name: string;
+	color: HexColor;
+}

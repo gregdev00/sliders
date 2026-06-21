@@ -15,7 +15,7 @@ class TaskService {
 
 	addTask(name: string) {
 		const colorValues = Object.values(PALETTE);
-		const color = colorValues[this.#tasks.length % colorValues.length];
+		const color = colorValues[this.#tasks.length % colorValues.length].color;
 
 		const task: Task = {
 			id: String(Date.now() + Math.random()),

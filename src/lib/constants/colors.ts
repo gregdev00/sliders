@@ -1,15 +1,17 @@
-export const PALETTE = {
-	coral: '#ff7a5c',
-	tiffanyBlue: '#5dd6c5',
-	pastelYellow: '#ffd166',
-	lavender: '#a78bfa',
-	cyan: '#06b6d4',
-	pink: '#f472b6',
-	lime: '#84cc16',
-	orange: '#fb923c',
-	skyBlue: '#60a5fa',
-	purple: '#c084fc',
-	emerald: '#34d399',
-	amber: '#fbbf24',
-	salmon: '#f87171'
-} as const;
+import type { PaletteColor } from '$lib/types/paletteColor';
+
+export const PALETTE: PaletteColor[] = [
+	{ name: 'coral', color: '#ff7a5c' },
+	{ name: 'tiffanyBlue', color: '#5dd6c5' },
+	{ name: 'pastelYellow', color: '#ffd166' },
+	{ name: 'lavender', color: '#a78bfa' },
+	{ name: 'cyan', color: '#06b6d4' },
+	{ name: 'pink', color: '#f472b6' },
+	{ name: 'lime', color: '#84cc16' },
+	{ name: 'orange', color: '#fb923c' },
+	{ name: 'skyBlue', color: '#60a5fa' },
+	{ name: 'purple', color: '#c084fc' },
+	{ name: 'emerald', color: '#34d399' },
+	{ name: 'amber', color: '#fbbf24' },
+	{ name: 'salmon:', color: '#f87171' }
+] as const;

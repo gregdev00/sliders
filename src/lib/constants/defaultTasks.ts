@@ -7,7 +7,7 @@ export const DEFAULT_TASKS: Task[] = [
 		name: 'Sleep',
 		hours: 8,
 		originalHours: 8,
-		color: PALETTE.lime,
+		color: PALETTE[6].color,
 		locked: false,
 		actual: 0
 	},
@@ -16,7 +16,7 @@ export const DEFAULT_TASKS: Task[] = [
 		name: 'Deep work',
 		hours: 4,
 		originalHours: 4,
-		color: PALETTE.coral,
+		color: PALETTE[0].color,
 		locked: false,
 		actual: 0
 	},
@@ -25,7 +25,7 @@ export const DEFAULT_TASKS: Task[] = [
 		name: 'Movement',
 		hours: 1,
 		originalHours: 1,
-		color: PALETTE.tiffanyBlue,
+		color: PALETTE[1].color,
 		locked: false,
 		actual: 0
 	}

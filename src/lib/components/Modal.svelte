@@ -60,7 +60,7 @@
 		<div
 			class={clsx(
 				'w-full rounded-main border border-border bg-bg-elev text-text shadow-lg p-6',
-				'flex flex-col gap-4 transform transition-all duration-200 scale-100 opacity-100',
+				'flex flex-col gap-4 transform transition-all duration-200 scale-100 opacity-100 overflow-y-auto',
 				sizeClasses[size]
 			)}
 			onclick={(e) => e.stopPropagation()}
@@ -91,7 +91,7 @@
 				</Button>
 			</div>
 
-			<div class="text-sm text-text-2 leading-relaxed max-h-[60vh] overflow-y-auto">
+			<div class="text-sm text-text-2 leading-relaxed max-h-[60vh]">
 				{@render children?.()}
 			</div>
 

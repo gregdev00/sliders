@@ -17,13 +17,22 @@
 		if (e.key === 'Enter') handleTaskAdd();
 	}
 
+	function handleOnEdit(id: string) {}
+
+	function handleOnChange(updatedFields) {}
+
+	function handleOnLock(id: string) {}
+
+	function handleOnFavourite(id: string) {}
+
 	interface Props {
 		taskStart: number;
 		dayLen: number;
 		stepMinutes: number;
+		progress: number;
 	}
 
-	let { taskStart, dayLen, stepMinutes }: Props = $props();
+	let { taskStart, dayLen, stepMinutes, progress }: Props = $props();
 </script>
 
 <div class="mb-3.5">
@@ -57,6 +66,11 @@
 				{taskStart}
 				{stepMinutes}
 				{dayLen}
+				{progress}
+				onFavourite={(id) => handleOnFavourite(id)}
+				onEdit={(id) => handleOnEdit(id)}
+				onLock={(id) => handleOnLock(id)}
+				onChange={(updatedFields) => handleOnChange(updatedFields)}
 				onDelete={(id: string) => taskService.removeTask(id)}
 			/>
 		{:else}

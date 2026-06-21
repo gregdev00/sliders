@@ -15,8 +15,12 @@
 
 	import { formatTime, formatHours } from '$lib/utils/formatUtils';
 	import ToastList from '$lib/components/ToastList.svelte';
+	import Input from '$lib/components/Input.svelte';
+	import type { Task } from '$lib/types/task';
+	import ColorPicker from '$lib/components/ColorPicker.svelte';
 
 	let helpModalOpen = $state(false);
+	let editModalOpen = $state(true);
 
 	let globalShortcutItems = [
 		{ shortcut: '/', description: 'Focus Add-task' },
@@ -44,6 +48,18 @@
 	let nowHour = $state(3);
 	let dayLen = $state(4);
 	let taskStart = $state(1);
+	let progress = $state(2);
+
+	// TODO: change to null
+	let editTask = $state<Task | null>({
+		id: '1',
+		name: 'Sleep',
+		hours: 2,
+		originalHours: 3,
+		color: '#FF0000',
+		actual: 3,
+		locked: false
+	});
 
 	function handleDaySliderChange(start: number, end: number): void {
 		dayStart = start;
@@ -127,7 +143,7 @@
 			<Settings />
 		</div>
 		<div class="mb-3.5">
-			<TaskList {dayLen} {taskStart} stepMinutes={settingsService.snapSize} />
+			<TaskList {dayLen} {taskStart} {progress} stepMinutes={settingsService.snapSize} />
 		</div>
 	</div>
 </div>
@@ -155,6 +171,18 @@
 			<ShortcutItem shortcut={shortcutItem.shortcut} description={shortcutItem.description} />
 		{/each}
 	</div>
+</Modal>
+
+<Modal bind:isOpen={editModalOpen}>
+	{#snippet header()}
+		<h2 class="text-[20px] font-semibold tracking-[-0.02em]">Edit task</h2>
+	{/snippet}
+	{#if editTask}
+		<Input label="Name" name="Name" bind:value={editTask.name} placeholder="Name" />
+		<ColorPicker selectedColor={editTask.color} />
+	{:else}
+		<span>No task to edit</span>
+	{/if}
 </Modal>
 
 <ToastList />

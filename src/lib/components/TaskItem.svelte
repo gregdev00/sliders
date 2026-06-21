@@ -10,11 +10,12 @@
 		dayLen: number;
 		isActive?: boolean;
 		isFavourite?: boolean;
-		onDelete?: (id: string) => void;
-		onFavourite?: (id: string) => void;
-		onEdit?: (id: string) => void;
-		onLock?: (id: string) => void;
-		onChange?: (updatedFields: { hours: number }) => void;
+		progress: number;
+		onDelete: (id: string) => void;
+		onFavourite: (id: string) => void;
+		onEdit: (id: string) => void;
+		onLock: (id: string) => void;
+		onChange: (updatedFields: { hours: number }) => void;
 		onLongPressStart?: () => void;
 		onLongPressEnd?: () => void;
 	}
@@ -32,7 +33,9 @@
 		dayLen,
 		isActive = true,
 		isFavourite = false,
+		progress,
 		onDelete,
+		onEdit,
 		onChange,
 		onLongPressStart,
 		onLongPressEnd
@@ -64,8 +67,18 @@
 		onpointercancel={onLongPressEnd}
 		oncontextmenu={(e) => e.preventDefault()}
 	>
+		{#if isActive && typeof progress === 'number'}
+			<div
+				class="absolute left-0 top-0 bottom-0 pointer-events-none"
+				style="width: {Math.max(
+					0,
+					Math.min(100, progress * 100)
+				)}%; background: linear-gradient(90deg, {color}10, {color}05);"
+			></div>
+		{/if}
 		<div class="flex items-center gap-2.5 mb-2.5 relative">
 			<button
+				onclick={() => onEdit(id)}
 				class="w-3.5 h-3.5 rounded-full border-[medium] bg-current border-current p-0 shrink-0 cursor-pointer shadow-[0_0_0_2px_rgba(132,204,22,0.2)]"
 				aria-label="Edit color"
 				style="color:{color}"
