@@ -2,11 +2,12 @@
 	interface Props {
 		min?: number;
 		max?: number;
-		value: number;
+		value?: number;
 		color?: string;
+		step: number;
 	}
 
-	let { min = 0, max = 100, value = $bindable(42), color = '#34a8eb' }: Props = $props();
+	let { min = 0, max = 100, value = $bindable(42), step = 15, color = '#34a8eb' }: Props = $props();
 
 	let isDragging = $state(false);
 	let trackElement: HTMLDivElement | undefined = $state();
@@ -50,7 +51,6 @@
 
 	// Billentyűzet támogatás
 	function handleKeyDown(e: KeyboardEvent) {
-		const step = 0.5;
 		if (e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'PageUp') {
 			e.preventDefault();
 			value = Math.min(max, value + step);

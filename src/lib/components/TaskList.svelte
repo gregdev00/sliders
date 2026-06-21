@@ -1,5 +1,6 @@
 <script lang="ts">
 	import { taskService } from '$lib/services/TaskService.svelte';
+	import type { Task } from '$lib/types/task';
 	import Button from './Button.svelte';
 	import Input from './Input.svelte';
 	import TaskItem from './TaskItem.svelte';
@@ -7,8 +8,13 @@
 	let taskName = $state('');
 
 	function handleTaskAdd(): void {
-		if (taskName && taskName.trim() !== '') {
-			taskService.addTask(taskName);
+		if (!taskName && taskName.trim() === '') {
+			return;
+		}
+
+		const success = taskService.addTask(taskName, { dayLen, stepMinutes });
+
+		if (success) {
 			taskName = '';
 		}
 	}
@@ -17,8 +23,6 @@
 		if (e.key === 'Enter') handleTaskAdd();
 	}
 
-	function handleOnEdit(id: string) {}
-
 	function handleOnChange(updatedFields) {}
 
 	function handleOnLock(id: string) {}
@@ -26,13 +30,28 @@
 	function handleOnFavourite(id: string) {}
 
 	interface Props {
-		taskStart: number;
+		dayStart: number;
 		dayLen: number;
 		stepMinutes: number;
 		progress: number;
+		handleOnEdit: (task: Task) => void;
 	}
 
-	let { taskStart, dayLen, stepMinutes, progress }: Props = $props();
+	let { dayStart, dayLen, stepMinutes, progress, handleOnEdit }: Props = $props();
+
+	const tasksWithStartTimes = $derived.by(() => {
+		let currentAccumulator = dayStart;
+
+		return taskService.tasks.map((task) => {
+			const taskStart = currentAccumulator;
+			currentAccumulator += task.hours || 0;
+
+			return {
+				...task,
+				taskStart
+			};
+		});
+	});
 </script>
 
 <div class="mb-3.5">
@@ -60,15 +79,15 @@
 		{/if}
 	</div>
 	<div class="opacity-100 transition-opacity duration-200">
-		{#each taskService.tasks as task (task.id)}
+		{#each tasksWithStartTimes as item (item.id)}
 			<TaskItem
-				{...task}
-				{taskStart}
+				task={item}
+				taskStart={item.taskStart}
 				{stepMinutes}
 				{dayLen}
 				{progress}
 				onFavourite={(id) => handleOnFavourite(id)}
-				onEdit={(id) => handleOnEdit(id)}
+				onEdit={(task) => handleOnEdit(task)}
 				onLock={(id) => handleOnLock(id)}
 				onChange={(updatedFields) => handleOnChange(updatedFields)}
 				onDelete={(id: string) => taskService.removeTask(id)}

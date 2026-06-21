@@ -20,7 +20,7 @@
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 
 	let helpModalOpen = $state(false);
-	let editModalOpen = $state(true);
+	let editModalOpen = $state(false);
 
 	let globalShortcutItems = [
 		{ shortcut: '/', description: 'Focus Add-task' },
@@ -41,25 +41,26 @@
 		{ shortcut: 'Home / End', description: '0 / max' }
 	];
 
-	// TODO: change to null
+	let currentDateTime = $state(new Date());
+
+	// Update clock in 1s intervals
+	$effect(() => {
+		const interval = setInterval(() => {
+			currentDateTime = new Date();
+		}, 1000);
+
+		return () => clearInterval(interval);
+	});
+
 	let selectedTaskId: string | null = $state('1');
-	let dayStart = $state(2);
-	let dayEnd = $state(5);
-	let nowHour = $state(3);
-	let dayLen = $state(4);
-	let taskStart = $state(1);
+	let dayStart = $state(8);
+	let dayEnd = $state(22);
+	let nowHour = $derived(currentDateTime.getHours());
+	let dayLen = $derived((((dayEnd - dayStart) % 24) + 24) % 24);
 	let progress = $state(2);
 
 	// TODO: change to null
-	let editTask = $state<Task | null>({
-		id: '1',
-		name: 'Sleep',
-		hours: 2,
-		originalHours: 3,
-		color: '#FF0000',
-		actual: 3,
-		locked: false
-	});
+	let editTask = $state<Task | null>(null);
 
 	function handleDaySliderChange(start: number, end: number): void {
 		dayStart = start;
@@ -70,13 +71,18 @@
 		selectedTaskId = id;
 	}
 
+	function handleOnEdit(task: Task) {
+		editTask = task;
+		editModalOpen = true;
+	}
+
 	function setDayWindow(start: number, end: number) {
 		dayStart = start;
 		dayEnd = end;
 	}
 </script>
 
-<Header onHelpClick={() => (helpModalOpen = true)} />
+<Header currentTime={currentDateTime} onHelpClick={() => (helpModalOpen = true)} />
 
 <div class="grid desktop:grid-cols-[380px_1fr] gap-6 items-start px-5 py-4">
 	<div class="desktop:sticky desktop:top-32.5 desktop:self-start">
@@ -143,7 +149,13 @@
 			<Settings />
 		</div>
 		<div class="mb-3.5">
-			<TaskList {dayLen} {taskStart} {progress} stepMinutes={settingsService.snapSize} />
+			<TaskList
+				{dayStart}
+				{dayLen}
+				{progress}
+				stepMinutes={settingsService.snapSize}
+				{handleOnEdit}
+			/>
 		</div>
 	</div>
 </div>

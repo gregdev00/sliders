@@ -1,6 +1,11 @@
 import type { Task } from '$lib/types/task';
 import { PALETTE } from '$lib/constants/colors';
 import { DEFAULT_TASKS } from '$lib/constants/defaultTasks';
+import type { PaletteColor } from '$lib/types/paletteColor';
+import type { HexColor } from '$lib/types/hexColor';
+import { toastService } from './ToastService.svelte';
+
+const normalizeName = (name: string) => name.trim().toLowerCase();
 
 class TaskService {
 	async init() {
@@ -8,26 +13,78 @@ class TaskService {
 	}
 
 	#tasks: Task[] = $state([]);
+	#favourites: Task[] = $state([]);
+
+	/**
+	 * Helper to snap values to grid constraints
+	 */
+	#snapToStep(value: number, stepMinutes: number): number {
+		const stepHours = stepMinutes / 60;
+		return Math.round(value / stepHours) * stepHours;
+	}
 
 	get tasks() {
 		return this.#tasks;
 	}
 
-	addTask(name: string) {
-		const colorValues = Object.values(PALETTE);
-		const color = colorValues[this.#tasks.length % colorValues.length].color;
+	addTask(
+		name: string,
+		options?: {
+			hours?: number;
+			color?: HexColor;
+			dayLen?: number;
+			stepMinutes?: number;
+		}
+	): boolean {
+		// Extract parameters with sensible baseline defaults if not passed
+		const hoursParam = options?.hours;
+		const colorParam = options?.color;
+		const dl = options?.dayLen ?? 24;
+		const stepMinutes = options?.stepMinutes ?? 30;
+		const stepHours = stepMinutes / 60;
 
-		const task: Task = {
+		const trimmedName = name.trim();
+		const normalizedInputName = normalizeName(trimmedName);
+
+		// Check if a task with this exact name already exists in the active list
+		const nameExists = this.#tasks.some((t) => normalizeName(t.name) === normalizedInputName);
+
+		if (nameExists) {
+			toastService.showToast(`Task "${trimmedName}" already exists!`, 'error');
+			return false;
+		}
+
+		// Find if this task is a favorite/pre-existing task (fav)
+		const fav = this.#favourites.find((f) => normalizeName(f.name) === normalizeName(trimmedName));
+
+		// Calculate remaining hours left in the day (rem)
+		const usedHours = this.#tasks.reduce((sum, t) => sum + (t.hours || 0), 0);
+		const rem = Math.max(0, dl - usedHours);
+
+		// Checks passed hours -> fallback to favorite hours -> fallback to 1 grid step size
+		const defaultFallback = this.#snapToStep(Math.min(stepHours, rem), stepMinutes);
+		const preferredHours = hoursParam ?? fav?.hours ?? defaultFallback;
+
+		// Clamp it so it doesn't overshoot remaining time, or defaults to step size if day is full
+		const h = Math.max(0, Math.min(preferredHours, rem || stepHours));
+
+		// Resolve fallback color
+		const paletteArray: PaletteColor[] = Array.isArray(PALETTE) ? PALETTE : Object.values(PALETTE);
+		const fallbackColor: HexColor = paletteArray[this.#tasks.length % paletteArray.length].color;
+		const resolvedColor = colorParam || fav?.color || fallbackColor;
+
+		const newTask: Task = {
 			id: String(Date.now() + Math.random()),
-			name: name.trim(),
-			hours: 1,
-			originalHours: 1,
-			color: color,
+			name: trimmedName,
+			hours: h,
+			originalHours: h,
+			color: resolvedColor,
 			locked: false,
 			actual: 0
 		};
 
-		this.#tasks.push(task);
+		this.#tasks.push(newTask);
+		return true;
 	}
 
 	removeTask(id: string) {

@@ -9,11 +9,9 @@
 
 	const TOAST_THEME = {
 		info: {
-			toastBg: 'bg-bg-elev',
 			dotBg: 'bg-accent-2'
 		},
 		error: {
-			toastBg: 'bg-danger',
 			dotBg: 'bg-danger'
 		}
 	} as const;
@@ -22,7 +20,7 @@
 </script>
 
 <div
-	class="inline-flex items-center gap-2 shadow-lg rounded-full border border-border font-[13px] text-text px-4.5 py-2.5 {theme.toastBg}"
+	class="inline-flex items-center gap-2 shadow-lg rounded-full bg-bg-elev border border-border text-[13px] text-text px-4.5 py-2.5"
 >
 	<span class="size-1.5 rounded-full {theme.dotBg}"></span>
 	<span>{message}</span>

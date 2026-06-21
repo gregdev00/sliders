@@ -5,33 +5,14 @@
 	import { settingsService } from '$lib/services/SettingsService.svelte';
 	import SyncBadge from './SyncBadge.svelte';
 	import { authService } from '$lib/services/AuthService.svelte';
+	import { formatTime } from '$lib/utils/formatUtils';
 
 	interface Props {
+		currentTime: Date;
 		onHelpClick: () => void;
 	}
 
-	let { onHelpClick }: Props = $props();
-
-	// Helper function to grab the formatted time string
-	function getFormattedTime() {
-		const now = new Date();
-		const hours = String(now.getHours()).padStart(2, '0');
-		const minutes = String(now.getMinutes()).padStart(2, '0');
-		return `${hours}:${minutes}`;
-	}
-
-	// Set the initial state to the exact current time immediately
-	let currentTime = $state(getFormattedTime());
-
-	function updateClock() {
-		currentTime = getFormattedTime();
-	}
-
-	onMount(() => {
-		const interval = setInterval(updateClock, 1000);
-
-		return () => clearInterval(interval);
-	});
+	let { currentTime, onHelpClick }: Props = $props();
 </script>
 
 <header
@@ -43,7 +24,7 @@
 			<div>
 				<div class="text-lg font-semibold leading-none tracking-[-0.02em]">Sliders</div>
 				<div class="flex gap-2 items-center text-[11px] text-text-3 mt-0.5 font-mono">
-					<span class="tabular-nums">{currentTime}</span>
+					<span class="tabular-nums">{formatTime(currentTime)}</span>
 					<span class="opacity-40">·</span>
 					<span>{settingsService.snapSize}m</span>
 					{#if authService.isAuthenticated}

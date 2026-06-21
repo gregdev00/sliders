@@ -1,10 +1,12 @@
 <script lang="ts">
 	import type { Task } from '$lib/types/task';
+	import { formatHours, formatTime } from '$lib/utils/formatUtils';
 	import Button from './Button.svelte';
 	import TimeSlider from './TimeSlider.svelte';
 	import clsx from 'clsx';
 
-	interface Props extends Task {
+	interface Props {
+		task: Task;
 		taskStart: number;
 		stepMinutes: number;
 		dayLen: number;
@@ -13,7 +15,7 @@
 		progress: number;
 		onDelete: (id: string) => void;
 		onFavourite: (id: string) => void;
-		onEdit: (id: string) => void;
+		onEdit: (task: Task) => void;
 		onLock: (id: string) => void;
 		onChange: (updatedFields: { hours: number }) => void;
 		onLongPressStart?: () => void;
@@ -21,13 +23,7 @@
 	}
 
 	let {
-		id,
-		name,
-		hours,
-		originalHours,
-		color,
-		locked,
-		actual,
+		task,
 		taskStart,
 		stepMinutes,
 		dayLen,
@@ -41,12 +37,12 @@
 		onLongPressEnd
 	}: Props = $props();
 
-	const taskEnd = $derived(taskStart + hours);
+	const taskEnd = $derived(taskStart + task.hours);
 	const stepH = $derived(stepMinutes / 60);
 
 	const nudge = (dir: number) => {
-		if (locked) return;
-		const next = Math.max(0, Math.min(dayLen, hours + dir * stepH));
+		if (task.locked) return;
+		const next = Math.max(0, Math.min(dayLen, task.hours + dir * stepH));
 		onChange?.({
 			hours: (Math.round((next * 60) / stepMinutes) * stepMinutes) / 60
 		});
@@ -60,8 +56,8 @@
 			'transition-[border-color_0.2s,box-shadow_0.2s] relative pt-3.5 pb-3 px-3.5 mb-2 select-none bg-bg-elev border rounded-main overflow-hidden',
 			'border-border'
 		)}
-		style:border-color={isActive ? color : null}
-		style:box-shadow={isActive ? `0 0 0 1px ${color}55, 0 4px 16px ${color}22` : null}
+		style:border-color={isActive ? task.color : null}
+		style:box-shadow={isActive ? `0 0 0 1px ${task.color}55, 0 4px 16px ${task.color}22` : null}
 		onpointerdown={onLongPressStart}
 		onpointerup={onLongPressEnd}
 		onpointercancel={onLongPressEnd}
@@ -73,28 +69,28 @@
 				style="width: {Math.max(
 					0,
 					Math.min(100, progress * 100)
-				)}%; background: linear-gradient(90deg, {color}10, {color}05);"
+				)}%; background: linear-gradient(90deg, {task.color}10, {task.color}05);"
 			></div>
 		{/if}
 		<div class="flex items-center gap-2.5 mb-2.5 relative">
 			<button
-				onclick={() => onEdit(id)}
+				onclick={() => onEdit({ ...task })}
 				class="w-3.5 h-3.5 rounded-full border-[medium] bg-current border-current p-0 shrink-0 cursor-pointer shadow-[0_0_0_2px_rgba(132,204,22,0.2)]"
 				aria-label="Edit color"
-				style="color:{color}"
+				style="color:{task.color}"
 			></button>
 			<div class="flex-1 min-w-0">
 				<div
 					class="flex items-center gap-2 mb-0.5 tracking-[-0.01em] overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer text-[15px] font-medium text-text"
 				>
-					<span class="overflow-hidden text-ellipsis whitespace-nowrap">{name}</span>
+					<span class="overflow-hidden text-ellipsis whitespace-nowrap">{task.name}</span>
 				</div>
 				<div class="flex gap-2 items-center font-mono text-[11px] text-text-3">
-					<span>08:00</span>
-					<span>→</span>
-					<span>10:15</span>
+					<span>{formatTime(taskStart)}</span>
+					<span class="opacity-40">→</span>
+					<span>{formatTime(taskEnd)}</span>
 					<span class="opacity-40 mx-1 my-0">·</span>
-					<span class="font-medium" style="color:{color}">2h 15m</span>
+					<span class="font-medium" style="color:{task.color}">{formatHours(task.hours)}</span>
 				</div>
 			</div>
 			<div class="flex gap-0.5 shrink-0">
@@ -154,8 +150,14 @@
 						></path></svg
 					>
 				</Button>
-				{#if !locked}
-					<Button iconOnly outline size="sm" aria-label="Delete" onclick={() => onDelete?.(id)}>
+				{#if !task.locked}
+					<Button
+						iconOnly
+						outline
+						size="sm"
+						aria-label="Delete"
+						onclick={() => onDelete?.(task.id)}
+					>
 						<svg
 							width="16"
 							height="16"
@@ -172,6 +174,6 @@
 				{/if}
 			</div>
 		</div>
-		<TimeSlider min={0} max={14} value={hours} {color} />
+		<TimeSlider min={0} max={dayLen} step={stepMinutes} value={task.hours} color={task.color} />
 	</div>
 </div>
