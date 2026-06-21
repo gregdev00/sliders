@@ -192,6 +192,7 @@
 	font-display: swap;
 	font-family: 'Geist Variable';
 	font-style: normal;
+	font-optical-sizing: auto;
 	font-weight: 100 900;
 	src:
 		url('/fonts/geist-variable.woff2') format('woff2-variations'),
@@ -206,6 +207,7 @@
 	font-display: swap;
 	font-family: 'Geist Mono Variable';
 	font-style: normal;
+	font-optical-sizing: auto;
 	font-weight: 100 900;
 	src:
 		url('/fonts/geist-mono-variable.woff2') format('woff2-variations'),
@@ -215,10 +217,11 @@
 		U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-@supports (font-variation-settings: normal) {
+/* If the browser supports variable adjustments, upgrade the font family */
+@supports (font-variation-settings: 'wght' 450) or (font-weight: 100 900) {
 	:root {
-		--font-sans: 'Geist Variable';
-		--font-mono: 'Geist Mono Variable';
+		--font-sans: 'Geist Variable', sans-serif;
+		--font-mono: 'Geist Mono Variable', monospace;
 	}
 }
 
