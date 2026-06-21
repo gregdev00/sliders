@@ -74,7 +74,7 @@
 	<progress
 		value={progress}
 		max="100"
-		class="block w-full h-0.5 appearance-none bg-bg-track"
+		class="block w-full h-0.5 appearance-none bg-bg-track [&::-webkit-progress-bar]:bg-bg-track"
 		class:[&::-webkit-progress-value]:bg-danger={over}
 		class:[&::-moz-progress-bar]:bg-danger={over}
 		class:[&::-webkit-progress-value]:bg-accent-2={!over && perfect}

@@ -19,6 +19,7 @@
 	import type { Task } from '$lib/types/task';
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 	import { TIME_PRECISION_CONFIG } from '$lib/constants/timePrecisionConfig';
+	import Timeline from '$lib/components/Timeline.svelte';
 
 	let helpModalOpen = $state(false);
 	let editModalOpen = $state(false);
@@ -58,7 +59,7 @@
 	let dayEnd = $state(22);
 	let nowHour = $derived(currentDateTime.getHours());
 	let dayLen = $derived((((dayEnd - dayStart) % 24) + 24) % 24);
-	const total = taskService.tasks.reduce((sum, task) => sum + task.hours, 0);
+	const total = $derived(taskService.tasks.reduce((sum, task) => sum + task.hours, 0));
 	const remaining = $derived(dayLen - total);
 	const over = $derived(remaining < TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
 	const perfect = $derived(Math.abs(remaining) < TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
@@ -158,6 +159,11 @@
 				</Button>
 			</div>
 		</div>
+		{#if settingsService.showTimeline && taskService.tasks.length > 0}
+			<div class="bg-bg-elev border border-border rounded-main p-3.5 mb-4">
+				<Timeline tasks={taskService.tasks} {dayLen} {dayStart} />
+			</div>
+		{/if}
 	</div>
 	<div>
 		<div class="mb-3.5">
