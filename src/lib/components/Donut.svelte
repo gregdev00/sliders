@@ -8,16 +8,16 @@
 
 	interface Props {
 		tasks: Task[];
+		total: number;
+		isOver: boolean;
 		dayLen: number;
 		dayStart: number;
 		selectedId: string | null;
 		onSelectTask: (id: string | null) => void;
 	}
 
-	let { tasks, dayLen, dayStart, selectedId, onSelectTask }: Props = $props();
+	let { tasks, total, isOver, dayLen, dayStart, selectedId, onSelectTask }: Props = $props();
 
-	const total = $derived(tasks.reduce((sum, task) => sum + task.hours, 0));
-	const isOver = $derived(total > dayLen + TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
 	const display = $derived(
 		isOver ? tasks.map((task) => ({ ...task, hours: task.hours * (dayLen / total) })) : tasks
 	);
@@ -146,9 +146,15 @@
 			.map((slice) => {
 				const angleData = animatedAngles[slice.id] || targetAngles[slice.id];
 				if (!angleData || angleData.sw < 0.002) return null;
-				return { slice, ...angleData };
+
+				const isSel = !slice.isFree && selectedId === slice.id;
+
+				return { slice, isSel, ...angleData };
 			})
-			.filter((seg): seg is { slice: DonutSlice; startA: number; sw: number } => seg !== null);
+			.filter(
+				(seg): seg is { slice: DonutSlice; isSel: boolean; startA: number; sw: number } =>
+					seg !== null
+			);
 	});
 
 	const selectedTask = $derived(selectedId ? tasks.find((task) => task.id === selectedId) : null);
@@ -171,8 +177,6 @@
 	<g style="pointer-events: auto;">
 		<!-- Donut segments -->
 		{#each segments as seg (seg.slice.id)}
-			{@const isSel = !seg.slice.isFree && selectedId === seg.slice.id}
-
 			{#if seg.slice.isFree}
 				<path
 					d={buildSegmentPath(seg.startA, seg.sw)}
@@ -184,16 +188,16 @@
 				<path
 					d={buildSegmentPath(seg.startA, seg.sw)}
 					fill={seg.slice.color}
-					stroke={isSel ? 'var(--text)' : 'var(--bg-elev)'}
-					stroke-width={isSel ? 2 : 1}
+					stroke={seg.isSel ? 'var(--text)' : 'var(--bg-elev)'}
+					stroke-width={seg.isSel ? 2 : 1}
 					role="button"
 					tabindex={0}
 					aria-label={`Select task ${seg.slice.name || ''}`}
-					aria-pressed={isSel}
+					aria-pressed={seg.isSel}
 					style="
                 cursor: pointer;
                 transition: stroke-width 0.15s, stroke 0.15s;
-                filter: {isSel ? `drop-shadow(0 0 8px ${seg.slice.color}aa)` : 'none'};
+                filter: {seg.isSel ? `drop-shadow(0 0 8px ${seg.slice.color}aa)` : 'none'};
                 pointer-events: auto;
                 outline: none;
             "
@@ -219,32 +223,7 @@
 		/>
 		<!-- Center label -->
 		<g pointer-events="none">
-			{#if sleepTask}
-				<text
-					x={DONUT_CONFIG.CX}
-					y={DONUT_CONFIG.CY - 4}
-					text-anchor="middle"
-					font-family="var(--font-sans)"
-					font-size="22"
-					fill={sleepTask.color}
-					font-weight="600"
-					letter-spacing="-0.02em"
-				>
-					{formatHours(sleepHours)}
-					<tspan font-size="13" font-weight="500" fill={sleepTask.color} opacity="0.9">sleep</tspan>
-				</text>
-				<text
-					x={DONUT_CONFIG.CX}
-					y={DONUT_CONFIG.CY + 14}
-					text-anchor="middle"
-					font-family="var(--font-sans)"
-					font-size="11"
-					fill="var(--text-3)"
-					letter-spacing="-0.005em"
-				>
-					{workHours > 0 ? `${formatHours(workHours)} work` : 'no work yet'}
-				</text>
-			{:else if selectedTask}
+			{#if selectedTask}
 				<text
 					x={DONUT_CONFIG.CX}
 					y={DONUT_CONFIG.CY - 4}
@@ -267,6 +246,38 @@
 					letter-spacing="-0.005em"
 				>
 					{selectedTask.name.length > 16 ? selectedTask.name.slice(0, 16) + '…' : selectedTask.name}
+				</text>
+			{:else if sleepTask}
+				<text
+					x={DONUT_CONFIG.CX}
+					y={DONUT_CONFIG.CY - 4}
+					text-anchor="middle"
+					font-family="var(--font-sans)"
+					font-size="22"
+					fill={sleepTask.color}
+					font-weight="600"
+					letter-spacing="-0.02em"
+				>
+					{formatHours(sleepHours)}
+					<tspan
+						x={DONUT_CONFIG.CX}
+						dy="18"
+						font-size="13"
+						font-weight="500"
+						fill={sleepTask.color}
+						opacity="0.9">sleep</tspan
+					>
+				</text>
+				<text
+					x={DONUT_CONFIG.CX}
+					y={DONUT_CONFIG.CY + 30}
+					text-anchor="middle"
+					font-family="var(--font-sans)"
+					font-size="11"
+					fill="var(--text-3)"
+					letter-spacing="-0.005em"
+				>
+					{workHours > 0 ? `${formatHours(workHours)} work` : 'no work yet'}
 				</text>
 			{:else}
 				<text

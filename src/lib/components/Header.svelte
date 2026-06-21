@@ -5,14 +5,21 @@
 	import { settingsService } from '$lib/services/SettingsService.svelte';
 	import SyncBadge from './SyncBadge.svelte';
 	import { authService } from '$lib/services/AuthService.svelte';
-	import { formatTime } from '$lib/utils/formatUtils';
+	import { formatHours, formatTime } from '$lib/utils/formatUtils';
 
 	interface Props {
 		currentTime: Date;
+		total: number;
+		dayLen: number;
+		remaining: number;
+		over: boolean;
+		perfect: boolean;
 		onHelpClick: () => void;
 	}
 
-	let { currentTime, onHelpClick }: Props = $props();
+	let { currentTime, total, dayLen, remaining, over, perfect, onHelpClick }: Props = $props();
+	const formattedTotal = $derived(perfect ? formatHours(dayLen) : formatHours(Math.abs(remaining)));
+	const progress = $derived(Math.min(100, (total / dayLen) * 100));
 </script>
 
 <header
@@ -25,7 +32,7 @@
 				<div class="text-lg font-semibold leading-none tracking-[-0.02em]">Sliders</div>
 				<div class="flex gap-2 items-center text-[11px] text-text-3 mt-0.5 font-mono">
 					<span class="tabular-nums">{formatTime(currentTime)}</span>
-					<span class="opacity-40">·</span>
+					<span class="opacity-40 select-none">·</span>
 					<span>{settingsService.snapSize}m</span>
 					{#if authService.isAuthenticated}
 						<SyncBadge class="ml-0.75" onlyCircle />
@@ -35,10 +42,17 @@
 		</div>
 		<div class="flex items-center gap-2.5">
 			<div class="text-right">
-				<div class="text-text tabular-nums text-lg font-semibold leading-none tracking-[-0.01em]">
-					6h
+				<div
+					class="tabular-nums text-lg font-semibold leading-none tracking-[-0.01em]"
+					class:text-danger={over}
+					class:text-accent2={!over && perfect}
+					class:text-text={!over && !perfect}
+				>
+					{formattedTotal}
 				</div>
-				<div class="text-[10px] font-mono text-text-3 tracking-[0.06em] mt-0.75">FREE</div>
+				<div class="text-[10px] font-mono text-text-3 tracking-[0.06em] mt-0.75">
+					{over ? 'OVER' : perfect ? 'FULL' : 'FREE'}
+				</div>
 			</div>
 			<ThemeSwitcher />
 			<Button iconOnly outline aria-label="Keyboard shortcuts" onclick={onHelpClick}
@@ -58,11 +72,14 @@
 		</div>
 	</div>
 	<progress
-		value="92.8571"
+		value={progress}
 		max="100"
-		class="block w-full h-0.5 appearance-none bg-bg-track
-	[&::-webkit-progress-bar]:bg-bg-track
-	[&::-webkit-progress-value]:bg-accent
-	[&::-moz-progress-bar]:bg-accent"
+		class="block w-full h-0.5 appearance-none bg-bg-track"
+		class:[&::-webkit-progress-value]:bg-danger={over}
+		class:[&::-moz-progress-bar]:bg-danger={over}
+		class:[&::-webkit-progress-value]:bg-accent-2={!over && perfect}
+		class:[&::-moz-progress-bar]:bg-accent-2={!over && perfect}
+		class:[&::-webkit-progress-value]:bg-accent={!over && !perfect}
+		class:[&::-moz-progress-bar]:bg-accent={!over && !perfect}
 	></progress>
 </header>

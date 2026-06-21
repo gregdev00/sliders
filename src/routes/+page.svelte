@@ -18,6 +18,7 @@
 	import Input from '$lib/components/Input.svelte';
 	import type { Task } from '$lib/types/task';
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
+	import { TIME_PRECISION_CONFIG } from '$lib/constants/timePrecisionConfig';
 
 	let helpModalOpen = $state(false);
 	let editModalOpen = $state(false);
@@ -52,14 +53,17 @@
 		return () => clearInterval(interval);
 	});
 
-	let selectedTaskId: string | null = $state('1');
+	let selectedTaskId: string | null = $state(null);
 	let dayStart = $state(8);
 	let dayEnd = $state(22);
 	let nowHour = $derived(currentDateTime.getHours());
 	let dayLen = $derived((((dayEnd - dayStart) % 24) + 24) % 24);
+	const total = taskService.tasks.reduce((sum, task) => sum + task.hours, 0);
+	const remaining = $derived(dayLen - total);
+	const over = $derived(remaining < TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
+	const perfect = $derived(Math.abs(remaining) < TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
 	let progress = $state(2);
 
-	// TODO: change to null
 	let editTask = $state<Task | null>(null);
 
 	function handleDaySliderChange(start: number, end: number): void {
@@ -68,6 +72,7 @@
 	}
 
 	function onSelectTask(id: string | null) {
+		console.log(id);
 		selectedTaskId = id;
 	}
 
@@ -82,7 +87,15 @@
 	}
 </script>
 
-<Header currentTime={currentDateTime} onHelpClick={() => (helpModalOpen = true)} />
+<Header
+	currentTime={currentDateTime}
+	{total}
+	{dayLen}
+	{remaining}
+	{over}
+	{perfect}
+	onHelpClick={() => (helpModalOpen = true)}
+/>
 
 <div class="grid desktop:grid-cols-[380px_1fr] gap-6 items-start px-5 py-4">
 	<div class="desktop:sticky desktop:top-32.5 desktop:self-start">
@@ -96,6 +109,8 @@
 				<CircularSlider {dayStart} {dayEnd} {nowHour} onChange={handleDaySliderChange} />
 				<Donut
 					tasks={taskService.tasks}
+					{total}
+					isOver={over}
 					{dayStart}
 					{dayLen}
 					selectedId={selectedTaskId}
@@ -104,15 +119,15 @@
 			</div>
 			<div class="flex items-center gap-2.5 mt-1.5 flex-wrap justify-center">
 				<div
-					class="font-mono text-[11px] font-medium text-text-3 bg-bg-elev-2 border border-border rounded-md px-1.5 py-0.5"
+					class="font-mono text-[11px] font-medium text-text-3 bg-bg-elev-2 border border-border rounded-md px-1.5 py-0.5 tabular-nums"
 				>
 					{formatTime(dayStart)} → {formatTime(dayEnd)}
 				</div>
-				<div class="text-[12px] text-text-3">·</div>
-				<div class="text-[13px] text-text-2">
+				<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
+				<div class="text-[13px] text-text-2 tabular-nums min-w-12.5 text-center">
 					{formatHours(dayLen)}
 				</div>
-				<div class="text-[12px] text-text-3">·</div>
+				<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
 				<Button
 					size="sm"
 					outline
