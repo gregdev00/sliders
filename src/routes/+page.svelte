@@ -99,7 +99,7 @@
 />
 
 <div class="grid desktop:grid-cols-[380px_1fr] gap-6 items-start px-5 py-4">
-	<div class="desktop:sticky desktop:top-32.5 desktop:self-start">
+	<div class="max-desktop:top-32.5 max-desktop:self-start">
 		<div
 			class="flex flex-col items-center gap-2 bg-bg-elev border border-border rounded-main p-5 mb-4"
 		>
