@@ -1,9 +1,10 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
+	import { fly } from 'svelte/transition';
+	import { expoOut, quadIn } from 'svelte/easing';
 
 	interface Props {
 		isDefaultOpen?: boolean;
-		// Define two separate layout blocks
 		header: Snippet<[{ toggle: () => void; isOpen: boolean }]>;
 		content: Snippet;
 	}
@@ -20,6 +21,12 @@
 	{@render header({ toggle, isOpen })}
 
 	{#if isOpen}
-		{@render content()}
+		<div
+			in:fly={{ y: 10, duration: 50, easing: expoOut }}
+			out:fly={{ y: -5, duration: 50, easing: quadIn }}
+			class="origin-top"
+		>
+			{@render content()}
+		</div>
 	{/if}
 </div>

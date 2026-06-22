@@ -209,9 +209,7 @@
 			</div>
 		</div>
 	</TabPanel>
-	<TabPanel id="week">
-		<p>Beállítások...</p>
-	</TabPanel>
+	<TabPanel id="week">week</TabPanel>
 </Tabs>
 
 <Modal bind:isOpen={helpModalOpen}>
