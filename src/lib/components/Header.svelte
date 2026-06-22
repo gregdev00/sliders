@@ -1,5 +1,5 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
+	import { type Snippet } from 'svelte';
 	import ThemeSwitcher from './ThemeSwitcher.svelte';
 	import Button from './Button.svelte';
 	import { settingsService } from '$lib/services/SettingsService.svelte';
@@ -15,9 +15,11 @@
 		over: boolean;
 		perfect: boolean;
 		onHelpClick: () => void;
+		tabList?: Snippet;
 	}
 
-	let { currentTime, total, dayLen, remaining, over, perfect, onHelpClick }: Props = $props();
+	let { currentTime, total, dayLen, remaining, over, perfect, onHelpClick, tabList }: Props =
+		$props();
 	const formattedTotal = $derived(perfect ? formatHours(dayLen) : formatHours(Math.abs(remaining)));
 	const progress = $derived(Math.min(100, (total / dayLen) * 100));
 </script>
@@ -82,4 +84,5 @@
 		class:[&::-webkit-progress-value]:bg-accent={!over && !perfect}
 		class:[&::-moz-progress-bar]:bg-accent={!over && !perfect}
 	></progress>
+	{@render tabList?.()}
 </header>
