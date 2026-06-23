@@ -52,7 +52,9 @@
 	{/snippet}
 
 	{#snippet content()}
-		<div class="px-4.5 py-4 mb-3.5 bg-bg-elev border border-border rounded-main animate-fadeUp">
+		<div
+			class="mt-4 px-4.5 py-4 mb-3.5 bg-bg-elev border border-border rounded-main animate-fadeUp"
+		>
 			<div class="flex justify-between items-center py-1.5 border-b border-border mb-3.5">
 				<div>
 					<div class="text-[14px] font-medium">Show timeline</div>

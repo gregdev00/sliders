@@ -17,7 +17,7 @@
 	}
 </script>
 
-<div class="w-full space-y-4">
+<div class="w-full">
 	{@render header({ toggle, isOpen })}
 
 	{#if isOpen}
