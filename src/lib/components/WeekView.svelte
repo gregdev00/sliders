@@ -7,6 +7,15 @@
 	import type { Week } from '$lib/types/week';
 	import { syncService } from '$lib/services/SyncService.svelte';
 	import { formatHours } from '$lib/utils/formatUtils';
+	import DayCard from './DayCard.svelte';
+	import type { Task } from '$lib/types/task';
+
+	interface Props {
+		todayTasks: Task[];
+		snapSize: number;
+	}
+
+	let { todayTasks, snapSize }: Props = $props();
 
 	let week: Week = $state(syncService.loadWeek());
 	const todayDowRaw = new Date().getDay();
@@ -36,6 +45,38 @@
 						Week
 					</div>
 				</div>
+				<div class="flex-1 h-2 rounded-[4px] overflow-hidden flex bg-bg-track">
+					{#each week as weekday, i (weekday.dayIndex)}
+						{@const totalHours = weekTotalHours(weekday)}
+						{@const width = weekTotal > 0 ? (totalHours / weekTotal) * 100 : 100 / 7}
+						{@const color = weekday.tasks[0]?.color || 'var(--bg-track)'}
+						<div
+							style:width="{width}%"
+							style:background={totalHours > 0 ? color : 'var(--bg-track)'}
+							style:border-right={i < 6 ? '1px solid var(--bg-elev)' : 'none'}
+							style:opacity={totalHours > 0 ? 1 : 0.3}
+							class="h-full"
+						></div>
+					{/each}
+				</div>
+				<div class="text-right">
+					<div class="tabular-nums text-[14px] font-semibold">
+						{filledDays}
+						<span class="text-text-4 font-normal">/7</span>
+					</div>
+					<div class="text-[10px] text-text-3 font-mono tracking-[0.06em] uppercase">Days</div>
+				</div>
+			</div>
+			<div class="flex flex-col gap-2">
+				{#each week as weekday (weekday.dayIndex)}
+					<DayCard
+						dayData={weekday}
+						dayIndex={weekday.dayIndex}
+						{todayTasks}
+						{snapSize}
+						isToday={weekday.dayIndex === todayDow}
+					/>
+				{/each}
 			</div>
 		</div>
 	</TabPanel>

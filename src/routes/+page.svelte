@@ -76,6 +76,8 @@
 	let isToday = $state(false); // this will be handled by the calendar
 	let dayLabel = $state('Monday, June 22'); // will be dynamic label
 
+	const todayTasks: Task[] = [];
+
 	function calculateDayLen(start: number, end: number) {
 		return (((end - start) % 24) + 24) % 24;
 	}
@@ -105,10 +107,6 @@
 		if (newDayLength < 0.5) return;
 		dayStart = start;
 		dayEnd = end;
-	}
-
-	function weekTotalHours(day) {
-		return day.tasks.reduce((sum, task) => sum + (task.hours || 0), 0);
 	}
 </script>
 
@@ -215,7 +213,7 @@
 		</div>
 	</TabPanel>
 	<TabPanel id="week">
-		<WeekView></WeekView>
+		<WeekView {todayTasks} snapSize={settingsService.snapSize} />
 	</TabPanel>
 </Tabs>
 
