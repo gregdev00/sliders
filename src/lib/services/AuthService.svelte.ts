@@ -1,4 +1,3 @@
-// src/lib/services/AuthService.svelte.ts
 import { initializeApp, FirebaseError } from 'firebase/app';
 import { getAuth, signInWithPopup, GoogleAuthProvider, type User } from 'firebase/auth';
 

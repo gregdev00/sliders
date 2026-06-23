@@ -20,7 +20,6 @@
 		role="tabpanel"
 		id="panel-{id}"
 		aria-labelledby="tab-{id}"
-		class="pt-5 px-1"
 		in:fly={{ y: 16, duration: 350, opacity: 0, easing: cubicOut }}
 	>
 		{@render children()}
