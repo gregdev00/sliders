@@ -41,7 +41,7 @@
 			>
 				<div class="shrink-0 w-20">
 					<div
-						class="text-[14px] font-semibold tracking-[-0.01em]"
+						class="text-[14px] transition-colors font-semibold tracking-[-0.01em]"
 						class:text-accent={isToday}
 						class:text-text={!isToday}
 					>
@@ -53,11 +53,13 @@
 						</div>
 					{/if}
 				</div>
-				<div class="relative flex-1 h-1.5 rounded-[3px] bg-bg-track overflow-hidden">
+				<div
+					class="relative flex-1 h-1.5 rounded-[3px] transition-colors bg-bg-track overflow-hidden"
+				>
 					{#if segmentsTotal > 0}
 						{#each segments as task, i (task.id)}
 							{@const previousSegments = segments.slice(0, i)}
-							{@const leftHours = previousSegments.reduce((sum, x) => sum + x.hours, 0)}
+							{@const leftHours = previousSegments.reduce((sum, task) => sum + task.hours, 0)}
 							{@const leftPercent = (leftHours / segmentsTotal) * 100}
 							{@const widthPercent = (task.hours / segmentsTotal) * 100}
 
