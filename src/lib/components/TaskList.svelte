@@ -5,6 +5,10 @@
 	import Input from './Input.svelte';
 	import TaskItem from './TaskItem.svelte';
 
+	import { flip } from 'svelte/animate';
+	import { fade, slide } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
+
 	let taskName = $state('');
 
 	function handleTaskAdd(): void {
@@ -80,20 +84,28 @@
 	</div>
 	<div class="opacity-100 transition-opacity duration-200">
 		{#each tasksWithStartTimes as item (item.id)}
-			<TaskItem
-				task={item}
-				taskStart={item.taskStart}
-				{stepMinutes}
-				{dayLen}
-				{progress}
-				onFavourite={(id) => handleOnFavourite(id)}
-				onEdit={(task) => handleOnEdit(task)}
-				onLock={(id) => handleOnLock(id)}
-				onChange={(updatedFields) => handleOnChange(updatedFields)}
-				onDelete={(id: string) => taskService.removeTask(id)}
-			/>
+			<div
+				animate:flip={{ duration: 200, easing: cubicOut }}
+				transition:slide={{ duration: 150, easing: cubicOut }}
+			>
+				<TaskItem
+					task={item}
+					taskStart={item.taskStart}
+					{stepMinutes}
+					{dayLen}
+					{progress}
+					onFavourite={(id) => handleOnFavourite(id)}
+					onEdit={(task) => handleOnEdit(task)}
+					onLock={(id) => handleOnLock(id)}
+					onChange={(updatedFields) => handleOnChange(updatedFields)}
+					onDelete={(id: string) => taskService.removeTask(id)}
+				/>
+			</div>
 		{:else}
-			<div class="text-center py-10 px-5 border border-dashed border-border rounded-main">
+			<div
+				in:fade={{ duration: 100, delay: 200 }}
+				class="text-center py-10 px-5 border border-dashed border-border rounded-main"
+			>
 				<div class="text-[14px] text-text-2 mb-1.5 font-medium">No tasks yet</div>
 				<div class="text-[13px] text-text-3">Add one below to start sliding</div>
 			</div>
