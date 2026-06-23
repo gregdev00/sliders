@@ -24,6 +24,7 @@
 	import ColorPicker from '$lib/components/ColorPicker.svelte';
 	import { TIME_PRECISION_CONFIG } from '$lib/constants/timePrecisionConfig';
 	import Timeline from '$lib/components/Timeline.svelte';
+	import WeekView from '$lib/components/WeekView.svelte';
 
 	let helpModalOpen = $state(false);
 	let editModalOpen = $state(false);
@@ -104,6 +105,10 @@
 		if (newDayLength < 0.5) return;
 		dayStart = start;
 		dayEnd = end;
+	}
+
+	function weekTotalHours(day) {
+		return day.tasks.reduce((sum, task) => sum + (task.hours || 0), 0);
 	}
 </script>
 
@@ -209,7 +214,9 @@
 			</div>
 		</div>
 	</TabPanel>
-	<TabPanel id="week">week</TabPanel>
+	<TabPanel id="week">
+		<WeekView></WeekView>
+	</TabPanel>
 </Tabs>
 
 <Modal bind:isOpen={helpModalOpen}>
