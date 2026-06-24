@@ -7,7 +7,7 @@
 		dayStart: number;
 	}
 
-	let { tasks, dayLen, dayStart } = $props();
+	let { tasks, dayLen, dayStart }: Props = $props();
 
 	const segments = $derived.by(() => {
 		let cursor = 0;

@@ -16,8 +16,8 @@
 		onDelete: (id: string) => void;
 		onFavourite: (id: string) => void;
 		onEdit: (task: Task) => void;
-		onLock: (id: string) => void;
-		onChange: (updatedFields: { hours: number }) => void;
+		onLock: (id: string, updatedFields: Partial<Task>) => void;
+		onChange: (id: string, updatedFields: Partial<Task>) => void;
 		onLongPressStart?: () => void;
 		onLongPressEnd?: () => void;
 	}
@@ -32,6 +32,7 @@
 		progress,
 		onDelete,
 		onEdit,
+		onLock,
 		onChange,
 		onLongPressStart,
 		onLongPressEnd
@@ -43,7 +44,7 @@
 	const nudge = (dir: number) => {
 		if (task.locked) return;
 		const next = Math.max(0, Math.min(dayLen, task.hours + dir * stepH));
-		onChange?.({
+		onChange?.(task.id, {
 			hours: (Math.round((next * 60) / stepMinutes) * stepMinutes) / 60
 		});
 	};
@@ -94,32 +95,45 @@
 				</div>
 			</div>
 			<div class="flex gap-0.5 shrink-0">
-				<div class="flex gap-px mr-1">
-					<Button iconOnly outline size="sm" aria-label="Decrease {name}"
-						><svg
-							width="12"
-							height="12"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg
-						></Button
-					>
-					<Button iconOnly outline size="sm" aria-label="Increase {name}">
-						<svg
-							width="12"
-							height="12"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2.5"
-							stroke-linecap="round"
-							><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"
-							></line></svg
+				{#if !task.locked}
+					<div class="flex gap-px mr-1">
+						<Button
+							onclick={() => nudge(-1)}
+							iconOnly
+							outline
+							size="sm"
+							aria-label="Decrease {task.name}"
+							><svg
+								width="12"
+								height="12"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.5"
+								stroke-linecap="round"><line x1="5" y1="12" x2="19" y2="12"></line></svg
+							></Button
 						>
-					</Button>
-				</div>
+						<Button
+							onclick={() => nudge(1)}
+							iconOnly
+							outline
+							size="sm"
+							aria-label="Increase {task.name}"
+						>
+							<svg
+								width="12"
+								height="12"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2.5"
+								stroke-linecap="round"
+								><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"
+								></line></svg
+							>
+						</Button>
+					</div>
+				{/if}
 				<Button iconOnly outline size="sm" aria-label="Save favourite">
 					<svg
 						width="16"
@@ -135,20 +149,43 @@
 						></polygon></svg
 					>
 				</Button>
-				<Button iconOnly outline size="sm" aria-label="Lock">
-					<svg
-						width="16"
-						height="16"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						><rect x="3" y="11" width="18" height="11" rx="2"></rect><path
-							d="M7 11V7a5 5 0 0 1 9.9-1"
-						></path></svg
-					>
+				<Button
+					onclick={() => onLock(task.id, { locked: !task.locked })}
+					iconOnly
+					outline
+					size="sm"
+					aria-label={task.locked ? 'Unlock' : 'Lock'}
+					style="color: {task.locked ? 'var(--accent-2)' : 'var(--text-4)'}"
+				>
+					{#if task.locked}
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							><rect x="3" y="11" width="18" height="11" rx="2" /><path
+								d="M7 11V7a5 5 0 0 1 10 0v4"
+							/></svg
+						>
+					{:else}
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							><rect x="3" y="11" width="18" height="11" rx="2"></rect><path
+								d="M7 11V7a5 5 0 0 1 9.9-1"
+							></path></svg
+						>
+					{/if}
 				</Button>
 				{#if !task.locked}
 					<Button
@@ -182,7 +219,7 @@
 			value={task.hours}
 			color={task.color}
 			locked={task.locked}
-			onChange={(hour) => onChange({ hours: hour })}
+			onChange={(hours) => onChange(task.id, { hours: hours })}
 		/>
 	</div>
 </div>

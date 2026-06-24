@@ -8,7 +8,6 @@
 	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	import { updated } from '$app/state';
 
 	let taskName = $state('');
 
@@ -28,11 +27,13 @@
 		if (e.key === 'Enter') handleTaskAdd();
 	}
 
-	function handleOnChange(updatedFields) {
-		console.log(updatedFields);
+	function handleOnChange(id: string, updatedFields: Partial<Task>) {
+		taskService.updateTask(id, updatedFields);
 	}
 
-	function handleOnLock(id: string) {}
+	function handleOnLock(id: string, updatedFields: Partial<Task>) {
+		taskService.updateTask(id, updatedFields);
+	}
 
 	function handleOnFavourite(id: string) {}
 
@@ -99,8 +100,8 @@
 					{progress}
 					onFavourite={(id) => handleOnFavourite(id)}
 					onEdit={(task) => handleOnEdit(task)}
-					onLock={(id) => handleOnLock(id)}
-					onChange={(updatedFields) => handleOnChange(updatedFields)}
+					onLock={(id: string, updatedFields: Partial<Task>) => handleOnLock(id, updatedFields)}
+					onChange={(id: string, updatedFields: Partial<Task>) => handleOnChange(id, updatedFields)}
 					onDelete={(id: string) => taskService.removeTask(id)}
 				/>
 			</div>

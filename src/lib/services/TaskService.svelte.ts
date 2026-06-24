@@ -87,6 +87,23 @@ class TaskService {
 		return true;
 	}
 
+	updateTask(id: string, patch: Partial<Task>): boolean {
+		const index = this.#tasks.findIndex((t) => t.id === id);
+		if (index === -1) return false;
+
+		const updatedTask = {
+			...this.#tasks[index],
+			...patch
+		};
+
+		if (patch.hours !== undefined) {
+			updatedTask.originalHours = patch.hours;
+		}
+
+		this.#tasks[index] = updatedTask;
+		return true;
+	}
+
 	removeTask(id: string) {
 		this.#tasks = this.#tasks.filter((task) => task.id !== id);
 	}
