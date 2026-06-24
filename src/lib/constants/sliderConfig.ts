@@ -1,3 +1,7 @@
+export const TIME_SLIDER_ANIMATION_CONFIG = {
+	LERP: 0.3
+} as const;
+
 export const CIRCULAR_SLIDER_CONFIG = {
 	RING_SIZE: 240,
 	RING_CX: 120,

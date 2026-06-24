@@ -1,4 +1,8 @@
 <script lang="ts">
+	import { TIME_SLIDER_ANIMATION_CONFIG } from '$lib/constants/sliderConfig';
+	import { TIME_PRECISION_CONFIG } from '$lib/constants/timePrecisionConfig';
+	import { formatHours } from '$lib/utils/formatUtils';
+
 	interface Props {
 		min?: number;
 		max?: number;
@@ -6,97 +10,197 @@
 		color?: string;
 		step: number;
 		locked: boolean;
+		ariaLabel?: string;
+		onChange?: (value: number) => void;
 	}
 
 	let {
 		min = 0,
-		max = 100,
+		max = 24,
 		value = $bindable(42),
 		step = 15,
 		color = '#34a8eb',
-		locked = false
+		locked = false,
+		ariaLabel,
+		onChange
 	}: Props = $props();
 
-	let isDragging = $state(false);
+	const stepH = $derived(step / 60);
+
 	let trackElement: HTMLDivElement | undefined = $state();
+	let isDragging = $state(false);
+	let lastSnap = $state(value);
 
-	const percentage = $derived(Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100)));
+	let targetRaw = $state(value);
+	let currentRaw = $state(value);
+	let rafId: number | null = null;
 
-	const ariaValueText = $derived.by(() => {
-		const hours = Math.floor(value);
-		const minutes = Math.round((value % 1) * 60);
-		return `${hours}h ${minutes}m`;
+	let displayPercentage = $derived((value / max) * 100);
+
+	function snapToStep(value: number): number {
+		return Math.max(min, Math.min(max, Math.round(value / stepH) * stepH));
+	}
+
+	function applyPercentage(percent: number) {
+		displayPercentage = Math.max(0, Math.min(100, percent));
+	}
+
+	function animTo(t: number) {
+		targetRaw = t;
+		if (rafId !== null) return;
+
+		const run = () => {
+			const d = targetRaw - currentRaw;
+			if (Math.abs(d) < TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE) {
+				currentRaw = targetRaw;
+				applyPercentage((currentRaw / max) * 100);
+				rafId = null;
+				return;
+			}
+			currentRaw += d * TIME_SLIDER_ANIMATION_CONFIG.LERP;
+			applyPercentage((currentRaw / max) * 100);
+			rafId = requestAnimationFrame(run);
+		};
+		rafId = requestAnimationFrame(run);
+	}
+
+	$effect(() => {
+		animTo(value);
 	});
 
-	function updateValueFromCoords(clientX: number) {
-		if (!trackElement) return;
+	// Cleanup RAF on unmount
+	$effect(() => {
+		return () => {
+			if (rafId !== null) cancelAnimationFrame(rafId);
+		};
+	});
 
-		const rect = trackElement.getBoundingClientRect();
-		const relativeX = (clientX - rect.left) / rect.width;
-		const clampedX = Math.max(0, Math.min(1, relativeX));
+	function getRaw(clientX: number): number {
+		if (!trackElement) return 0;
+		const r = trackElement.getBoundingClientRect();
+		return Math.max(0, Math.min(1, (clientX - r.left) / r.width)) * max;
+	}
 
-		value = min + clampedX * (max - min);
+	function getSnap(clientX: number): number {
+		return snapToStep(getRaw(clientX));
 	}
 
 	function handlePointerDown(e: PointerEvent) {
-		if (e.button !== 0) return;
-
+		if (locked || e.button !== 0) return;
+		e.preventDefault();
 		isDragging = true;
+
 		trackElement?.setPointerCapture(e.pointerId);
-		updateValueFromCoords(e.clientX);
+		trackElement?.focus();
+
+		const r = getRaw(e.clientX);
+		currentRaw = r;
+		targetRaw = r;
+		applyPercentage((r / max) * 100);
+
+		const s = getSnap(e.clientX);
+		value = s;
+		lastSnap = s;
+		onChange?.(s);
 	}
 
 	function handlePointerMove(e: PointerEvent) {
 		if (!isDragging) return;
-		updateValueFromCoords(e.clientX);
+		animTo(getRaw(e.clientX));
+
+		const s = getSnap(e.clientX);
+		if (s !== lastSnap) {
+			try {
+				if (navigator.vibrate) navigator.vibrate(3);
+			} catch {}
+			lastSnap = s;
+		}
+		value = s;
+		onChange?.(s);
 	}
 
 	function handlePointerUp(e: PointerEvent) {
 		if (!isDragging) return;
 		isDragging = false;
 		trackElement?.releasePointerCapture(e.pointerId);
+
+		const s = getSnap(e.clientX);
+		value = s;
+		animTo(s);
+		onChange?.(s);
 	}
 
-	// Billentyűzet támogatás
+	// Mouse wheel support
+	function handleWheel(e: WheelEvent) {
+		if (locked) return;
+		e.preventDefault();
+
+		const dir = e.deltaY > 0 ? -1 : 1;
+		const big = e.shiftKey ? 4 : 1;
+		const next = Math.max(min, Math.min(max, value + dir * stepH * big));
+
+		const finalized = snapToStep(next);
+		value = finalized;
+		onChange?.(finalized);
+	}
+
+	// Keyboard support
 	function handleKeyDown(e: KeyboardEvent) {
-		if (e.key === 'ArrowRight' || e.key === 'ArrowUp' || e.key === 'PageUp') {
-			e.preventDefault();
-			value = Math.min(max, value + step);
-		} else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown' || e.key === 'PageDown') {
-			e.preventDefault();
-			value = Math.max(min, value - step);
-		} else if (e.key === 'Home') {
+		if (locked) return;
+		let delta = 0;
+
+		if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') delta = -stepH;
+		else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') delta = stepH;
+		else if (e.key === 'PageDown') delta = -stepH * 4;
+		else if (e.key === 'PageUp') delta = stepH * 4;
+		else if (e.key === 'Home') {
 			e.preventDefault();
 			value = min;
+			onChange?.(min);
+			return;
 		} else if (e.key === 'End') {
 			e.preventDefault();
 			value = max;
-		}
+			onChange?.(max);
+			return;
+		} else return;
+
+		e.preventDefault();
+		const next = Math.max(min, Math.min(max, value + delta));
+		const finalized = snapToStep(next);
+		value = finalized;
+		onChange?.(finalized);
 	}
 </script>
 
 <div
 	bind:this={trackElement}
-	class="relative h-11 rounded-xl cursor-pointer select-none touch-none overflow-visible bg-bg-track outline-accent"
-	tabindex="0"
+	class="relative h-11 rounded-xl select-none touch-none overflow-visible bg-bg-track outline-accent"
+	class:cursor-not-allowed={locked}
+	class:cursor-pointer={!locked}
+	class:touch-pan-y={locked}
+	class:touch-none={!locked}
+	tabindex={locked ? -1 : 0}
 	role="slider"
+	aria-label={ariaLabel || 'Hours'}
 	aria-valuemin={min}
 	aria-valuemax={max}
 	aria-valuenow={value}
-	aria-valuetext={ariaValueText}
+	aria-valuetext={formatHours(value)}
 	onpointerdown={handlePointerDown}
 	onpointermove={handlePointerMove}
 	onpointerup={handlePointerUp}
 	onkeydown={handleKeyDown}
+	onwheel={handleWheel}
 >
 	<div class="absolute inset-0 rounded-xl overflow-hidden">
 		<div
 			class="absolute rounded-xl left-0 top-0 bottom-0"
-			style="width: {percentage}%; background: linear-gradient(90deg, {color}66, {color});"
+			style="width: {displayPercentage}%; background: linear-gradient(90deg, {color}66, {color});"
 		></div>
 	</div>
 	<div
 		class="absolute bg-white w-1.5 h-8 top-2/4 rounded-[3px] translate-y-[-50%] pointer-events-none"
-		style="left: {percentage}%"
+		style="left: {displayPercentage}%"
 	></div>
 </div>

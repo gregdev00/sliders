@@ -8,7 +8,7 @@ export const DEFAULT_TASKS: Task[] = [
 		hours: 8,
 		originalHours: 8,
 		color: PALETTE[6].color,
-		locked: false,
+		locked: true, // TODO: set this to false
 		actual: 0
 	},
 	{
