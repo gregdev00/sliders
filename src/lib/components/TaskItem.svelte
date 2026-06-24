@@ -174,6 +174,13 @@
 				{/if}
 			</div>
 		</div>
-		<TimeSlider min={0} max={dayLen} step={stepMinutes} value={task.hours} color={task.color} />
+		<TimeSlider
+			min={0}
+			max={dayLen}
+			step={stepMinutes}
+			value={task.hours}
+			color={task.color}
+			locked={task.locked}
+		/>
 	</div>
 </div>

@@ -5,9 +5,17 @@
 		value?: number;
 		color?: string;
 		step: number;
+		locked: boolean;
 	}
 
-	let { min = 0, max = 100, value = $bindable(42), step = 15, color = '#34a8eb' }: Props = $props();
+	let {
+		min = 0,
+		max = 100,
+		value = $bindable(42),
+		step = 15,
+		color = '#34a8eb',
+		locked = false
+	}: Props = $props();
 
 	let isDragging = $state(false);
 	let trackElement: HTMLDivElement | undefined = $state();
