@@ -3,13 +3,11 @@
 	import { setContext } from 'svelte';
 
 	interface Props {
-		defaultTab?: string | null;
+		activeTab?: string | null;
 		children: Snippet;
 	}
 
-	let { defaultTab = null, children }: Props = $props();
-
-	let activeTab = $derived<string | null>(defaultTab);
+	let { activeTab = $bindable(null), children }: Props = $props();
 
 	function registerTab(id: string) {
 		if (activeTab === null) {

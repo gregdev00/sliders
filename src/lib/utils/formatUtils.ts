@@ -1,3 +1,5 @@
+import { DAYS_SHORT } from '$lib/constants/days';
+import { MONTH_NAMES_SHORT } from '$lib/constants/months';
 import type { ISODateString } from '$lib/types/isoDateString';
 
 /**
@@ -40,6 +42,34 @@ export function formatTime(input: number | Date): string {
 	const mm = totalMinutes % 60;
 
 	return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
+}
+
+/**
+ * Transforms a standard YYYY-MM-DD date string into a friendly human-readable short label (e.g., "Wed Jun 24").
+ * Safely handles empty string fallbacks and standardizes timezone parsing behavior.
+ * * @example
+ * formatDateToShortLabel("2026-06-24") => "Wed Jun 24"
+ * formatDateToShortLabel("")           => "—"
+ */
+export function formatDateToShortLabel(dateStr: ISODateString | '' | null | undefined): string {
+	if (!dateStr) return '—';
+
+	// Append local time literal to prevent timezone shifting behavior across different browsers
+	const date = new Date(`${dateStr}T00:00:00`);
+
+	if (isNaN(date.getTime())) {
+		return '—';
+	}
+
+	// Convert JavaScript's native Sunday=0 index to our constant's Monday=0 index
+	const nativeDayIndex = date.getDay();
+	const adjustedDayIndex = nativeDayIndex === 0 ? 6 : nativeDayIndex - 1;
+
+	const dayName = DAYS_SHORT[adjustedDayIndex];
+	const monthName = MONTH_NAMES_SHORT[date.getMonth()];
+	const dayOfMonth = date.getDate();
+
+	return `${dayName} ${monthName} ${dayOfMonth}`;
 }
 
 /**

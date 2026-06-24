@@ -8,7 +8,7 @@
 
 	interface Props {
 		activeDate: ISODateString;
-		onDateSelect?: (dateString: ISODateString) => void;
+		onDateSelect?: (dateString: ISODateString, isToday: boolean) => void;
 	}
 
 	let { activeDate, onDateSelect }: Props = $props();
@@ -118,7 +118,7 @@
 				{@const isPast = ds < today}
 
 				<button
-					onclick={() => onDateSelect?.(ds)}
+					onclick={() => onDateSelect?.(ds, isToday)}
 					class="flex flex-col items-center gap-1 min-h-13.5 transition-all duration-150 rounded-[10px] px-1 py-1.5 cursor-pointer"
 					style:background={isActive
 						? 'color-mix(in oklab, var(--accent) 25%, transparent)'

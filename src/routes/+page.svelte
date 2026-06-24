@@ -3,7 +3,7 @@
 	import Donut from '$lib/components/Donut.svelte';
 	import Tabs from '$lib/components/Tabs.svelte';
 	import TabPanel from '$lib/components/TabPanel.svelte';
-	import Tab from '$lib/components/Tab.svelte';
+	import Tab, { type TabClickEvent } from '$lib/components/Tab.svelte';
 	import TabList from '$lib/components/TabList.svelte';
 	import Header from '$lib/components/Header.svelte';
 	import Modal from '$lib/components/Modal.svelte';
@@ -17,7 +17,12 @@
 	import { settingsService } from '$lib/services/SettingsService.svelte';
 	import { toastService } from '$lib/services/ToastService.svelte';
 
-	import { formatTime, formatHours, getTodayDateISO } from '$lib/utils/formatUtils';
+	import {
+		formatTime,
+		formatHours,
+		getTodayDateISO,
+		formatDateToShortLabel
+	} from '$lib/utils/formatUtils';
 	import ToastList from '$lib/components/ToastList.svelte';
 	import Input from '$lib/components/Input.svelte';
 	import type { Task } from '$lib/types/task';
@@ -74,9 +79,10 @@
 	let editTask = $state<Task | null>(null);
 
 	let activeView = $state('today');
-	let isToday = $state(false); // this will be handled by the calendar
-	let dayLabel = $state('Monday, June 22'); // will be dynamic label
 	let activeDate: ISODateString = $state(getTodayDateISO());
+	const isToday = $derived(activeDate === getTodayDateISO());
+
+	const dayLabel = $derived(isToday ? 'Today' : formatDateToShortLabel(activeDate));
 
 	const todayTasks: Task[] = [];
 
@@ -84,9 +90,9 @@
 		return (((end - start) % 24) + 24) % 24;
 	}
 
-	function goToToday() {
-		activeView = 'today';
-		console.log('Go to today...');
+	function goToToday(e: TabClickEvent) {
+		e.preventDefault();
+		switchDate(getTodayDateISO(), true);
 	}
 
 	function handleDaySliderChange(start: number, end: number): void {
@@ -111,15 +117,98 @@
 		dayEnd = end;
 	}
 
-	function switchDate(dateString: ISODateString) {
+	function switchDate(dateString: ISODateString, isToday: boolean = false) {
 		activeDate = dateString;
-		activeView = 'today';
+		activeView = isToday ? 'today' : 'custom-day';
 		editTask = null;
 		selectedTaskId = null;
 	}
 </script>
 
-<Tabs defaultTab="today">
+{#snippet dayLayoutContent()}
+	<div class="grid desktop:grid-cols-[380px_1fr] desktop:gap-6 items-start px-5 py-4">
+		<div class="max-desktop:top-32.5 max-desktop:self-start">
+			<div
+				class="flex flex-col items-center gap-2 bg-bg-elev border border-border rounded-main p-5 mb-4"
+			>
+				<div
+					class="relative"
+					style={`width: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px; height: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px;`}
+				>
+					<CircularSlider {dayStart} {dayEnd} {nowHour} onChange={handleDaySliderChange} />
+					<Donut
+						tasks={taskService.tasks}
+						{total}
+						isOver={over}
+						{dayStart}
+						{dayLen}
+						selectedId={selectedTaskId}
+						{onSelectTask}
+					/>
+				</div>
+				<div class="flex items-center gap-2.5 mt-1.5 flex-wrap justify-center">
+					<div
+						class="font-mono text-[11px] font-medium text-text-3 bg-bg-elev-2 border border-border rounded-md px-1.5 py-0.5 tabular-nums"
+					>
+						{formatTime(dayStart)} → {formatTime(dayEnd)}
+					</div>
+					<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
+					<div class="text-[13px] text-text-2 tabular-nums min-w-12.5 text-center">
+						{formatHours(dayLen)}
+					</div>
+					<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
+					<Button
+						size="sm"
+						outline
+						onclick={() => {
+							const now = new Date(),
+								m = now.getHours() * 60 + now.getMinutes();
+							const newStart = Math.min(
+								(Math.ceil(m / settingsService.snapSize) * settingsService.snapSize) / 60,
+								23.5
+							);
+							setDayWindow(newStart, dayEnd);
+							toastService.showToast('Start = now');
+						}}
+						class="min-h-32"
+					>
+						<svg
+							width="14"
+							height="14"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg
+						>
+						Start now
+					</Button>
+				</div>
+			</div>
+			{#if settingsService.showTimeline && taskService.tasks.length > 0}
+				<div class="bg-bg-elev border border-border rounded-main p-3.5 mb-4">
+					<Timeline tasks={taskService.tasks} {dayLen} {dayStart} />
+				</div>
+			{/if}
+		</div>
+		<div>
+			<div class="mb-3.5"><Settings /></div>
+			<div class="mb-3.5">
+				<TaskList
+					{dayStart}
+					{dayLen}
+					{progress}
+					stepMinutes={settingsService.snapSize}
+					{handleOnEdit}
+				/>
+			</div>
+		</div>
+	</div>
+{/snippet}
+
+<Tabs bind:activeTab={activeView}>
 	<Header
 		currentTime={currentDateTime}
 		{total}
@@ -131,95 +220,21 @@
 	>
 		{#snippet tabList()}
 			<TabList>
-				<Tab id="today">Today</Tab>
+				<Tab id="today" onclick={goToToday}>Today</Tab>
+				{#if !isToday}
+					<Tab id="custom-day">{dayLabel}</Tab>
+				{/if}
 				<Tab id="week">Week</Tab>
 			</TabList>
 		{/snippet}
 	</Header>
 
 	<TabPanel id="today">
-		<div class="grid desktop:grid-cols-[380px_1fr] desktop:gap-6 items-start px-5 py-4">
-			<div class="max-desktop:top-32.5 max-desktop:self-start">
-				<div
-					class="flex flex-col items-center gap-2 bg-bg-elev border border-border rounded-main p-5 mb-4"
-				>
-					<div
-						class="relative"
-						style={`width: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px; height: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px;`}
-					>
-						<CircularSlider {dayStart} {dayEnd} {nowHour} onChange={handleDaySliderChange} />
-						<Donut
-							tasks={taskService.tasks}
-							{total}
-							isOver={over}
-							{dayStart}
-							{dayLen}
-							selectedId={selectedTaskId}
-							{onSelectTask}
-						/>
-					</div>
-					<div class="flex items-center gap-2.5 mt-1.5 flex-wrap justify-center">
-						<div
-							class="font-mono text-[11px] font-medium text-text-3 bg-bg-elev-2 border border-border rounded-md px-1.5 py-0.5 tabular-nums"
-						>
-							{formatTime(dayStart)} → {formatTime(dayEnd)}
-						</div>
-						<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
-						<div class="text-[13px] text-text-2 tabular-nums min-w-12.5 text-center">
-							{formatHours(dayLen)}
-						</div>
-						<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
-						<Button
-							size="sm"
-							outline
-							onclick={() => {
-								const now = new Date(),
-									m = now.getHours() * 60 + now.getMinutes();
-								const newStart = Math.min(
-									(Math.ceil(m / settingsService.snapSize) * settingsService.snapSize) / 60,
-									23.5
-								);
-								setDayWindow(newStart, dayEnd);
-								toastService.showToast('Start = now');
-							}}
-							class="min-h-32"
-						>
-							<svg
-								width="14"
-								height="14"
-								viewBox="0 0 24 24"
-								fill="none"
-								stroke="currentColor"
-								stroke-width="2"
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg
-							>
-							Start now
-						</Button>
-					</div>
-				</div>
-				{#if settingsService.showTimeline && taskService.tasks.length > 0}
-					<div class="bg-bg-elev border border-border rounded-main p-3.5 mb-4">
-						<Timeline tasks={taskService.tasks} {dayLen} {dayStart} />
-					</div>
-				{/if}
-			</div>
-			<div>
-				<div class="mb-3.5">
-					<Settings />
-				</div>
-				<div class="mb-3.5">
-					<TaskList
-						{dayStart}
-						{dayLen}
-						{progress}
-						stepMinutes={settingsService.snapSize}
-						{handleOnEdit}
-					/>
-				</div>
-			</div>
-		</div>
+		{@render dayLayoutContent()}
+	</TabPanel>
+
+	<TabPanel id="custom-day">
+		{@render dayLayoutContent()}
 	</TabPanel>
 	<TabPanel id="week">
 		<WeekView

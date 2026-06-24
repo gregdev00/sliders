@@ -16,7 +16,7 @@
 		activeDate: ISODateString;
 		todayTasks: Task[];
 		snapSize: number;
-		onDateSelect: (dateString: ISODateString) => void;
+		onDateSelect: (dateString: ISODateString, isToday: boolean) => void;
 	}
 
 	let { activeDate, todayTasks, snapSize, onDateSelect }: Props = $props();
@@ -28,7 +28,7 @@
 	const filledDays = week.filter((weekday) => weekday.tasks.length > 0).length;
 </script>
 
-<Tabs defaultTab="week">
+<Tabs activeTab="week">
 	<TabList>
 		<Tab id="week">Week</Tab>
 		<Tab id="month">Month</Tab>
