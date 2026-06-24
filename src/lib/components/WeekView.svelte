@@ -9,13 +9,16 @@
 	import { formatHours } from '$lib/utils/formatUtils';
 	import DayCard from './DayCard.svelte';
 	import type { Task } from '$lib/types/task';
+	import Calendar from './Calendar.svelte';
+	import type { ISODateString } from '$lib/types/isoDateString';
 
 	interface Props {
+		activeDate: ISODateString;
 		todayTasks: Task[];
 		snapSize: number;
 	}
 
-	let { todayTasks, snapSize }: Props = $props();
+	let { activeDate, todayTasks, snapSize }: Props = $props();
 
 	let week: Week = $state(syncService.loadWeek());
 	const todayDowRaw = new Date().getDay();
@@ -79,5 +82,8 @@
 				{/each}
 			</div>
 		</div>
+	</TabPanel>
+	<TabPanel id="month">
+		<Calendar {activeDate} />
 	</TabPanel>
 </Tabs>

@@ -1,5 +1,7 @@
 import type { Day } from '$lib/types/day';
+import type { ISODateString } from '$lib/types/isoDateString';
 import type { SyncStatus } from '$lib/types/syncStatus';
+import type { Task } from '$lib/types/task';
 import type { Week, WeekDay } from '$lib/types/week';
 import { getStorageItem } from '$lib/utils/storageUtils';
 
@@ -8,6 +10,7 @@ import { getStorageItem } from '$lib/utils/storageUtils';
  * state synchronization, and storage keys.
  */
 class SyncService {
+	readonly DAY_KEY_PREFIX = 'sliders_day_' as const;
 	readonly STORAGE_KEY = 'sliders_data' as const;
 	readonly WEEK_KEY = 'sliders_week_v1' as const;
 	readonly USAGE_KEY = 'sliders_task_usage' as const;
@@ -43,6 +46,38 @@ class SyncService {
 				note: ''
 			})
 		) as unknown as Week;
+	}
+
+	/**
+	 * Scans localStorage for saved daily schedules and compiles an object mapping
+	 * ISO date strings to their respective active task lists.
+	 * Filters out any days containing empty task configurations.
+	 * * @returns {Record<ISODateString, Task[]>} An object dictionary containing task arrays keyed by "YYYY-MM-DD" strings.
+	 * * @example
+	 * getDatesWithTasks() => { "2026-06-24": [{ id: 1, name: "Gym", color: "#ff0000" }] }
+	 */
+	getDatesWithTasks(): Record<ISODateString, Task[]> {
+		const result: Record<ISODateString, Task[]> = {};
+
+		try {
+			for (let i = 0; i < localStorage.length; i++) {
+				const key = localStorage.key(i);
+
+				if (key?.startsWith(this.DAY_KEY_PREFIX)) {
+					// Safely isolate the date string payload part
+					const dayString = key.replace(this.DAY_KEY_PREFIX, '') as ISODateString;
+					const data = getStorageItem<Day>(key);
+
+					if (data?.tasks && data.tasks.length > 0) {
+						result[dayString] = data.tasks;
+					}
+				}
+			}
+		} catch (error) {
+			console.error('Failed to read dates with tasks from storage:', error);
+		}
+
+		return result;
 	}
 }
 

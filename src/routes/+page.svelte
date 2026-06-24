@@ -17,7 +17,7 @@
 	import { settingsService } from '$lib/services/SettingsService.svelte';
 	import { toastService } from '$lib/services/ToastService.svelte';
 
-	import { formatTime, formatHours } from '$lib/utils/formatUtils';
+	import { formatTime, formatHours, getTodayDateISO } from '$lib/utils/formatUtils';
 	import ToastList from '$lib/components/ToastList.svelte';
 	import Input from '$lib/components/Input.svelte';
 	import type { Task } from '$lib/types/task';
@@ -25,6 +25,7 @@
 	import { TIME_PRECISION_CONFIG } from '$lib/constants/timePrecisionConfig';
 	import Timeline from '$lib/components/Timeline.svelte';
 	import WeekView from '$lib/components/WeekView.svelte';
+	import type { ISODateString } from '$lib/types/isoDateString';
 
 	let helpModalOpen = $state(false);
 	let editModalOpen = $state(false);
@@ -75,6 +76,7 @@
 	let activeView = $state('today');
 	let isToday = $state(false); // this will be handled by the calendar
 	let dayLabel = $state('Monday, June 22'); // will be dynamic label
+	let activeDate: ISODateString = $state(getTodayDateISO());
 
 	const todayTasks: Task[] = [];
 
@@ -213,7 +215,7 @@
 		</div>
 	</TabPanel>
 	<TabPanel id="week">
-		<WeekView {todayTasks} snapSize={settingsService.snapSize} />
+		<WeekView {activeDate} {todayTasks} snapSize={settingsService.snapSize} />
 	</TabPanel>
 </Tabs>
 
