@@ -37,7 +37,7 @@
 	<TabPanel id="week">
 		<div class="p-4">
 			<div
-				class="flex px-4 py-3.5 bg-bg-elev border border-border rounded-main items-center gap-3.5 mb-3.5"
+				class="flex px-4 py-3.5 bg-bg-elev border border-border rounded-main items-center gap-3.5 mb-3.5 transition-colors duration-150"
 			>
 				<div>
 					<div
