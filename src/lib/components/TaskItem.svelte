@@ -175,12 +175,14 @@
 			</div>
 		</div>
 		<TimeSlider
+			ariaLabel={`${task.name} hours`}
 			min={0}
 			max={dayLen}
 			step={stepMinutes}
 			value={task.hours}
 			color={task.color}
 			locked={task.locked}
+			onChange={(hour) => onChange({ hours: hour })}
 		/>
 	</div>
 </div>

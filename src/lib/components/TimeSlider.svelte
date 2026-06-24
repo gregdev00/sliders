@@ -27,22 +27,24 @@
 
 	const stepH = $derived(step / 60);
 
-	let trackElement: HTMLDivElement | undefined = $state();
-	let isDragging = $state(false);
-	let lastSnap = $state(value);
+	let trackElement: HTMLDivElement | undefined;
+	let fillElement: HTMLDivElement | undefined;
+	let thumbElement: HTMLDivElement | undefined;
 
-	let targetRaw = $state(value);
-	let currentRaw = $state(value);
+	let isDragging = false;
+	let lastSnap = value;
+	let targetRaw = value;
+	let currentRaw = value;
 	let rafId: number | null = null;
-
-	let displayPercentage = $derived((value / max) * 100);
 
 	function snapToStep(value: number): number {
 		return Math.max(min, Math.min(max, Math.round(value / stepH) * stepH));
 	}
 
 	function applyPercentage(percent: number) {
-		displayPercentage = Math.max(0, Math.min(100, percent));
+		const p = Math.max(0, Math.min(100, percent));
+		if (fillElement) fillElement.style.width = p + '%';
+		if (thumbElement) thumbElement.style.left = p + '%';
 	}
 
 	function animTo(t: number) {
@@ -93,6 +95,7 @@
 		trackElement?.setPointerCapture(e.pointerId);
 		trackElement?.focus();
 
+		// Nyers pozícióra ugrik azonnal (mint React onDown)
 		const r = getRaw(e.clientX);
 		currentRaw = r;
 		targetRaw = r;
@@ -195,12 +198,13 @@
 >
 	<div class="absolute inset-0 rounded-xl overflow-hidden">
 		<div
+			bind:this={fillElement}
 			class="absolute rounded-xl left-0 top-0 bottom-0"
-			style="width: {displayPercentage}%; background: linear-gradient(90deg, {color}66, {color});"
+			style="background: linear-gradient(90deg, {color}66, {color});"
 		></div>
 	</div>
 	<div
+		bind:this={thumbElement}
 		class="absolute bg-white w-1.5 h-8 top-2/4 rounded-[3px] translate-y-[-50%] pointer-events-none"
-		style="left: {displayPercentage}%"
 	></div>
 </div>

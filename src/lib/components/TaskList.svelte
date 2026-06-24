@@ -8,6 +8,7 @@
 	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import { updated } from '$app/state';
 
 	let taskName = $state('');
 
@@ -27,7 +28,9 @@
 		if (e.key === 'Enter') handleTaskAdd();
 	}
 
-	function handleOnChange(updatedFields) {}
+	function handleOnChange(updatedFields) {
+		console.log(updatedFields);
+	}
 
 	function handleOnLock(id: string) {}
 
