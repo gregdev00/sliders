@@ -8,7 +8,7 @@
 
 	interface Props {
 		activeDate: ISODateString;
-		onDateSelect?: (dateString: string) => void;
+		onDateSelect?: (dateString: ISODateString) => void;
 	}
 
 	let { activeDate, onDateSelect }: Props = $props();
@@ -110,7 +110,7 @@
 			{#if !day}
 				<div style="min-height: 54px;"></div>
 			{:else}
-				{@const ds = getDayString(day)}
+				{@const ds:ISODateString = getDayString(day)}
 				{@const dayTasks = syncService.getDatesWithTasks()[ds] || []}
 				{@const isToday = ds === today}
 				{@const isActive = ds === activeDate}

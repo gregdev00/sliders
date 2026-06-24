@@ -110,6 +110,13 @@
 		dayStart = start;
 		dayEnd = end;
 	}
+
+	function switchDate(dateString: ISODateString) {
+		activeDate = dateString;
+		activeView = 'today';
+		editTask = null;
+		selectedTaskId = null;
+	}
 </script>
 
 <Tabs defaultTab="today">
@@ -215,7 +222,12 @@
 		</div>
 	</TabPanel>
 	<TabPanel id="week">
-		<WeekView {activeDate} {todayTasks} snapSize={settingsService.snapSize} />
+		<WeekView
+			{activeDate}
+			{todayTasks}
+			snapSize={settingsService.snapSize}
+			onDateSelect={switchDate}
+		/>
 	</TabPanel>
 </Tabs>
 

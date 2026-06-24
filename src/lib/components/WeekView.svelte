@@ -16,9 +16,10 @@
 		activeDate: ISODateString;
 		todayTasks: Task[];
 		snapSize: number;
+		onDateSelect: (dateString: ISODateString) => void;
 	}
 
-	let { activeDate, todayTasks, snapSize }: Props = $props();
+	let { activeDate, todayTasks, snapSize, onDateSelect }: Props = $props();
 
 	let week: Week = $state(syncService.loadWeek());
 	const todayDowRaw = new Date().getDay();
@@ -84,6 +85,6 @@
 		</div>
 	</TabPanel>
 	<TabPanel id="month">
-		<Calendar {activeDate} />
+		<Calendar {activeDate} {onDateSelect} />
 	</TabPanel>
 </Tabs>
