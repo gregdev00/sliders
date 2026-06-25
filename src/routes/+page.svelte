@@ -177,6 +177,16 @@
 		editTask = null;
 		selectedTaskId = null;
 	}
+
+	function saveEditModal() {
+		if (editTask === null) return;
+
+		taskService.updateTask(editTask.id, { name: editTask.name, color: editTask.color });
+		toastService.showToast('Task updated');
+
+		editTask = null;
+		editModalOpen = false;
+	}
 </script>
 
 {#snippet dayLayoutContent()}
@@ -370,6 +380,7 @@
 					</div>
 					<Input
 						bind:value={scheduleDate}
+						onkeydown={(e: KeyboardEvent) => e.key === 'Enter' && saveEditModal()}
 						class="mb-3 font-mono [html[data-theme='light']_&]:scheme-light
          				[html[data-theme='dark']_&]:scheme-dark"
 						type="date"
@@ -389,7 +400,7 @@
 			{/snippet}
 		</Accordion>
 		<div class="w-full">
-			<Button class="w-full" color="accent">Save changes</Button>
+			<Button onclick={saveEditModal} class="w-full" color="accent">Save changes</Button>
 			<div style="height: env(safe-area-inset-bottom,0px);"></div>
 		</div>
 	{:else}

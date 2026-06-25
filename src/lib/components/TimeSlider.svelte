@@ -67,7 +67,13 @@
 	}
 
 	$effect(() => {
+		const currentColor = color;
+
 		animTo(value);
+
+		if (fillElement) {
+			fillElement.style.background = `linear-gradient(90deg, ${currentColor}66, ${currentColor})`;
+		}
 	});
 
 	// Cleanup RAF on unmount

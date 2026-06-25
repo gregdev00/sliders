@@ -115,6 +115,32 @@ class TaskService {
 		this.#tasks = this.#tasks.filter((task) => task.id !== id);
 	}
 
+	distributeTasks(dayLen: number, stepMinutes: number): boolean {
+		// Filter out locked tasks
+		const unlockedTasks = this.#tasks.filter((task) => !task.locked);
+		if (!unlockedTasks.length) return false;
+
+		// Sum up hours consumed by locked tasks
+		const lockedHours = this.#tasks
+			.filter((task) => task.locked)
+			.reduce((sum, task) => sum + task.hours, 0);
+
+		// Calculate remaining available hours to split among unlocked tasks
+		const availableHours = Math.max(0, dayLen - lockedHours);
+
+		// Calculate the raw split and snap it to step configurations
+		const rawSplit = availableHours / unlockedTasks.length;
+		const snappedHours = this.#snapToStep(rawSplit, stepMinutes);
+
+		// Mutate the unlocked tasks directly in place
+		for (const task of unlockedTasks) {
+			task.hours = snappedHours;
+			task.originalHours = snappedHours;
+		}
+
+		return true;
+	}
+
 	scaleToDayLen(newDayLen: number, oldDayLen: number): void {
 		const expanding = newDayLen > oldDayLen;
 

@@ -8,6 +8,8 @@
 	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
+	import Toast from './Toast.svelte';
+	import { toastService } from '$lib/services/ToastService.svelte';
 
 	let taskName = $state('');
 
@@ -21,6 +23,11 @@
 		if (success) {
 			taskName = '';
 		}
+	}
+
+	function handleDistribute(): void {
+		taskService.distributeTasks(dayLen, stepMinutes);
+		toastService.showToast('Distributed evenly');
 	}
 
 	function handleOnKeyDown(e: KeyboardEvent) {
@@ -71,7 +78,7 @@
 			Tasks
 		</div>
 		{#if taskService.tasks.length > 1}
-			<Button class="text-text-3" outline size="sm"
+			<Button onclick={handleDistribute} class="text-text-3" outline size="sm"
 				><svg
 					width="14"
 					height="14"
