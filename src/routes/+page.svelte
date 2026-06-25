@@ -21,7 +21,9 @@
 		formatTime,
 		formatHours,
 		getTodayDateISO,
-		formatDateToShortLabel
+		formatDateToShortLabel,
+		getTomorrowDateISO,
+		formatDateToUltraShortLabel
 	} from '$lib/utils/formatUtils';
 	import ToastList from '$lib/components/ToastList.svelte';
 	import Input from '$lib/components/Input.svelte';
@@ -31,6 +33,8 @@
 	import Timeline from '$lib/components/Timeline.svelte';
 	import WeekView from '$lib/components/WeekView.svelte';
 	import type { ISODateString } from '$lib/types/isoDateString';
+	import Accordion from '$lib/components/Accordion.svelte';
+	import clsx from 'clsx';
 
 	let helpModalOpen = $state(false);
 	let editModalOpen = $state(false);
@@ -74,6 +78,7 @@
 	const remaining = $derived(dayLen - total);
 	const over = $derived(remaining < -TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
 	const perfect = $derived(Math.abs(remaining) < TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
+	let scheduleDate = $state(getTomorrowDateISO());
 
 	let editTask = $state<Task | null>(null);
 
@@ -148,6 +153,10 @@
 	function handleOnEdit(task: Task) {
 		editTask = task;
 		editModalOpen = true;
+	}
+
+	function onSchedule() {
+		console.log(`Scheduled to ${scheduleDate}`);
 	}
 
 	function setDayWindow(start: number, end: number) {
@@ -309,10 +318,82 @@
 		<h2 class="text-[20px] font-semibold tracking-[-0.02em]">Edit task</h2>
 	{/snippet}
 	{#if editTask}
-		<Input label="Name" name="Name" bind:value={editTask.name} placeholder="Name" />
-		<ColorPicker selectedColor={editTask.color} />
+		<Input class="mb-5" label="Name" name="Name" bind:value={editTask.name} placeholder="Name" />
+		<div class="mb-6">
+			<ColorPicker bind:selectedColor={editTask.color} />
+		</div>
+		<Accordion class="mb-6">
+			{#snippet header({ toggle, isOpen })}
+				<Button
+					onclick={toggle}
+					class={clsx('w-full justify-between', {
+						'border-accent': isOpen
+					})}
+				>
+					<span class="flex items-center gap-2">
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							><rect x="3" y="4" width="18" height="18" rx="2" /><line
+								x1="16"
+								y1="2"
+								x2="16"
+								y2="6"
+							/><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg
+						>
+						Schedule for another day
+					</span><svg
+						class="transition-transform duration-200"
+						width="14"
+						height="14"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						style="transform: {isOpen ? 'rotate(180deg)' : 'none'};"
+						><polyline points="6 9 12 15 18 9" /></svg
+					></Button
+				>
+			{/snippet}
+			{#snippet content()}
+				<div class="mt-2 p-3.5 bg-bg-elev border border-border rounded-main">
+					<div
+						class="label font-mono text-[11px] text-text-3 mb-2 font-medium tacking-[0.06em] uppercase"
+					>
+						Target date
+					</div>
+					<Input
+						bind:value={scheduleDate}
+						class="mb-3 font-mono [html[data-theme='light']_&]:scheme-light
+         				[html[data-theme='dark']_&]:scheme-dark"
+						type="date"
+						min={getTomorrowDateISO()}
+					/>
+					<div class="text-[12px] text-text-3 mb-3 leading-[1.6]">
+						Moves the task to <span
+							class="font-medium"
+							style:color={editTask?.color || 'transparent'}
+							>{formatDateToUltraShortLabel(scheduleDate)}</span
+						> with its current time and color.
+					</div>
+					<Button class="w-full" color="accent" onclick={onSchedule}>
+						Move to {formatDateToUltraShortLabel(scheduleDate)}
+					</Button>
+				</div>
+			{/snippet}
+		</Accordion>
+		<div class="w-full">
+			<Button class="w-full" color="accent">Save changes</Button>
+			<div style="height: env(safe-area-inset-bottom,0px);"></div>
+		</div>
 	{:else}
-		<span>No task to edit</span>
+		<span class="text-center">No task to edit</span>
 	{/if}
 </Modal>
 

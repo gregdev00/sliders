@@ -2,14 +2,16 @@
 	import type { Snippet } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { expoOut, quadIn } from 'svelte/easing';
+	import clsx from 'clsx';
 
 	interface Props {
 		isDefaultOpen?: boolean;
+		class?: string;
 		header: Snippet<[{ toggle: () => void; isOpen: boolean }]>;
 		content: Snippet;
 	}
 
-	let { isDefaultOpen = false, header, content }: Props = $props();
+	let { class: className = '', isDefaultOpen = false, header, content }: Props = $props();
 	let isOpen = $derived(isDefaultOpen);
 
 	function toggle() {
@@ -17,7 +19,7 @@
 	}
 </script>
 
-<div class="w-full">
+<div class={clsx('w-full', className)}>
 	{@render header({ toggle, isOpen })}
 
 	{#if isOpen}

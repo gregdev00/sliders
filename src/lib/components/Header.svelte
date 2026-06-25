@@ -45,7 +45,7 @@
 				<div
 					class="tabular-nums text-lg font-semibold leading-none tracking-[-0.01em]"
 					class:text-danger={over}
-					class:text-accent2={!over && perfect}
+					class:text-accent-2={!over && perfect}
 					class:text-text={!over && !perfect}
 				>
 					{formattedTotal}

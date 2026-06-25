@@ -73,6 +73,31 @@ export function formatDateToShortLabel(dateStr: ISODateString | '' | null | unde
 }
 
 /**
+ * Transforms a standard YYYY-MM-DD date string into a very short format (e.g., "Jun 24").
+ * Useful for tight UI spaces where the day name is not required.
+ * * @example
+ * formatDateToUltraShortLabel("2026-06-24") => "Jun 24"
+ * formatDateToUltraShortLabel("")           => "—"
+ */
+export function formatDateToUltraShortLabel(
+	dateStr: ISODateString | '' | null | undefined
+): string {
+	if (!dateStr) return '—';
+
+	// Append local time literal to prevent timezone shifting behavior across different browsers
+	const date = new Date(`${dateStr}T00:00:00`);
+
+	if (isNaN(date.getTime())) {
+		return '—';
+	}
+
+	const monthName = MONTH_NAMES_SHORT[date.getMonth()];
+	const dayOfMonth = date.getDate();
+
+	return `${monthName} ${dayOfMonth}`;
+}
+
+/**
  * Formats a native Date object, a timestamp, or a valid date string into a standardized date string (YYYY-MM-DD).
  * Safely parses string or numeric inputs into a valid Date object before formatting.
  * * @example

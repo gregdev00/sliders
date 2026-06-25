@@ -38,7 +38,7 @@
 
 	const sizeClasses = {
 		sm: 'max-w-sm',
-		md: 'max-w-md',
+		md: 'max-w-md min-[600px]:max-w-[480px]',
 		lg: 'max-w-lg',
 		xl: 'max-w-2xl'
 	};
@@ -59,23 +59,23 @@
 	>
 		<div
 			class={clsx(
-				'w-full rounded-main border border-border bg-bg-elev text-text shadow-lg p-6',
-				'flex flex-col gap-4 transform transition-all duration-200 scale-100 opacity-100 overflow-y-auto',
+				'w-full bg-bg-elev border border-border text-text shadow-lg flex flex-col max-h-[92dvh]',
+				'rounded-t-main min-[600px]:rounded-main',
+				'animate-slide-up min-[600px]:transform-none',
 				sizeClasses[size]
 			)}
 			onclick={(e) => e.stopPropagation()}
 			onkeydown={(e) => e.stopPropagation()}
 			role="presentation"
 		>
-			<div class="flex items-center justify-between gap-4">
+			<div class="px-6 pt-6 pb-4 flex items-center justify-between gap-4 shrink-0">
 				{#if header}
 					{@render header()}
 				{:else}
 					<div></div>
 				{/if}
-
-				<Button iconOnly outline onclick={handleClose} aria-label="Bezárás">
-					<svg
+				<Button iconOnly outline onclick={handleClose} aria-label="Bezárás"
+					><svg
 						width="16"
 						height="16"
 						viewBox="0 0 24 24"
@@ -87,16 +87,16 @@
 					>
 						<line x1="18" y1="6" x2="6" y2="18"></line>
 						<line x1="6" y1="6" x2="18" y2="18"></line>
-					</svg>
-				</Button>
+					</svg></Button
+				>
 			</div>
 
-			<div class="text-sm text-text-2 leading-relaxed max-h-[60vh]">
+			<div class="text-sm text-text-2 leading-relaxed px-6 overflow-y-auto flex-1 min-h-0 pb-6">
 				{@render children?.()}
 			</div>
 
 			{#if footer}
-				<div class="flex items-center justify-end gap-2 pt-2 border-t border-border">
+				<div class="px-6 pb-6 pt-2 flex items-center justify-end gap-2 shrink-0">
 					{@render footer()}
 				</div>
 			{/if}
