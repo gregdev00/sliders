@@ -1,6 +1,8 @@
 <script lang="ts">
 	import type { Snippet } from 'svelte';
 	import { clsx } from 'clsx';
+	import { fade, fly } from 'svelte/transition';
+	import { cubicOut } from 'svelte/easing';
 	import Button from './Button.svelte';
 
 	interface Props {
@@ -48,6 +50,7 @@
 
 {#if isOpen}
 	<div
+		transition:fade={{ duration: 150 }}
 		class="fixed inset-0 z-100 flex items-end justify-center bg-[#08090f]/65 [backdrop-filter:blur(12px)] [-webkit-backdrop-filter:blur(12px)] transition-opacity duration-150 min-[600px]:items-center min-[600px]:p-6"
 		onclick={() => {
 			if (closeOnOutsideClick) handleClose();
@@ -58,6 +61,7 @@
 		tabindex="-1"
 	>
 		<div
+			transition:fly={{ y: 30, duration: 200, easing: cubicOut }}
 			class={clsx(
 				'w-full bg-bg-elev border border-border text-text shadow-lg flex flex-col max-h-[92dvh]',
 				'rounded-t-main min-[600px]:rounded-main',
