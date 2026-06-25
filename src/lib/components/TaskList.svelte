@@ -38,14 +38,17 @@
 	function handleOnFavourite(id: string) {}
 
 	interface Props {
+		isToday: boolean;
+		activeIndex: number;
+		activeProgress: number;
 		dayStart: number;
 		dayLen: number;
 		stepMinutes: number;
-		progress: number;
 		handleOnEdit: (task: Task) => void;
 	}
 
-	let { dayStart, dayLen, stepMinutes, progress, handleOnEdit }: Props = $props();
+	let { isToday, activeIndex, activeProgress, dayStart, dayLen, stepMinutes, handleOnEdit }: Props =
+		$props();
 
 	const tasksWithStartTimes = $derived.by(() => {
 		let currentAccumulator = dayStart;
@@ -87,7 +90,7 @@
 		{/if}
 	</div>
 	<div class="opacity-100 transition-opacity duration-200">
-		{#each tasksWithStartTimes as item (item.id)}
+		{#each tasksWithStartTimes as item, index (item.id)}
 			<div
 				animate:flip={{ duration: 200, easing: cubicOut }}
 				transition:slide={{ duration: 150, easing: cubicOut }}
@@ -97,7 +100,8 @@
 					taskStart={item.taskStart}
 					{stepMinutes}
 					{dayLen}
-					{progress}
+					isActive={isToday && activeIndex === index}
+					progress={isToday && activeIndex === index ? activeProgress : undefined}
 					onFavourite={(id) => handleOnFavourite(id)}
 					onEdit={(task) => handleOnEdit(task)}
 					onLock={(id: string, updatedFields: Partial<Task>) => handleOnLock(id, updatedFields)}

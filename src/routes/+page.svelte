@@ -72,15 +72,49 @@
 	let dayLen = $derived(calculateDayLen(dayStart, dayEnd));
 	const total = $derived(taskService.tasks.reduce((sum, task) => sum + task.hours, 0));
 	const remaining = $derived(dayLen - total);
-	const over = $derived(remaining < TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
+	const over = $derived(remaining < -TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
 	const perfect = $derived(Math.abs(remaining) < TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
-	let progress = $state(2);
 
 	let editTask = $state<Task | null>(null);
 
 	let activeView = $state('today');
 	let activeDate: ISODateString = $state(getTodayDateISO());
 	const isToday = $derived(activeDate === getTodayDateISO());
+
+	const inWindow = $derived(
+		(() => {
+			if (!isToday) return false;
+			if (dayEnd >= dayStart) return nowHour >= dayStart && nowHour < dayEnd;
+			return nowHour >= dayStart || nowHour < dayEnd;
+		})()
+	);
+
+	const activeIndex = $derived(
+		(() => {
+			if (!inWindow || !taskService.tasks.length) return -1;
+			let cursor = dayStart;
+			for (let i = 0; i < taskService.tasks.length; i++) {
+				const next = cursor + (taskService.tasks[i].hours || 0);
+				const within =
+					dayEnd >= dayStart
+						? nowHour >= cursor && nowHour < next
+						: (nowHour - cursor + 24) % 24 < (taskService.tasks[i].hours || 0);
+				if (within) return i;
+				cursor = next;
+			}
+			return -1;
+		})()
+	);
+
+	const activeProgress = $derived.by(() => {
+		if (activeIndex < 0) return 0;
+		let cursor = dayStart;
+		for (let i = 0; i < activeIndex; i++) cursor += taskService.tasks[i].hours || 0;
+		const len = taskService.tasks[activeIndex].hours || 0;
+		if (len <= 0) return 0;
+		const into = dayEnd >= dayStart ? nowHour - cursor : (nowHour - cursor + 24) % 24;
+		return Math.max(0, Math.min(1, into / len));
+	});
 
 	const dayLabel = $derived(isToday ? 'Today' : formatDateToShortLabel(activeDate));
 
@@ -95,11 +129,6 @@
 		switchDate(getTodayDateISO(), true);
 	}
 
-	function handleDaySliderChange(start: number, end: number): void {
-		dayStart = start;
-		dayEnd = end;
-	}
-
 	function onSelectTask(id: string | null) {
 		console.log(id);
 		selectedTaskId = id;
@@ -111,8 +140,13 @@
 	}
 
 	function setDayWindow(start: number, end: number) {
-		const newDayLength = calculateDayLen(start, end);
-		if (newDayLength < 0.5) return;
+		const newDayLen = calculateDayLen(start, end);
+		if (newDayLen < 0.5) return;
+
+		const oldDayLen = calculateDayLen(dayStart, dayEnd);
+		console.log({ dayStart, dayEnd, oldDayLen, newDayLen });
+		taskService.scaleToDayLen(newDayLen, oldDayLen);
+
 		dayStart = start;
 		dayEnd = end;
 	}
@@ -135,7 +169,7 @@
 					class="relative"
 					style={`width: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px; height: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px;`}
 				>
-					<CircularSlider {dayStart} {dayEnd} {nowHour} onChange={handleDaySliderChange} />
+					<CircularSlider {dayStart} {dayEnd} {nowHour} onChange={setDayWindow} />
 					<Donut
 						tasks={taskService.tasks}
 						{total}
@@ -197,9 +231,11 @@
 			<div class="mb-3.5"><Settings /></div>
 			<div class="mb-3.5">
 				<TaskList
+					{isToday}
+					{activeIndex}
+					{activeProgress}
 					{dayStart}
 					{dayLen}
-					{progress}
 					stepMinutes={settingsService.snapSize}
 					{handleOnEdit}
 				/>

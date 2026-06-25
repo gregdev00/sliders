@@ -107,6 +107,20 @@ class TaskService {
 	removeTask(id: string) {
 		this.#tasks = this.#tasks.filter((task) => task.id !== id);
 	}
+
+	scaleToDayLen(newDayLen: number, oldDayLen: number): void {
+		const expanding = newDayLen > oldDayLen;
+
+		const base = expanding
+			? this.#tasks.map((t) => ({ ...t, hours: t.originalHours ?? t.hours }))
+			: this.#tasks;
+
+		const total = base.reduce((sum, t) => sum + t.hours, 0);
+		if (total === 0) return;
+
+		const scale = newDayLen / total;
+		this.#tasks = base.map((t) => ({ ...t, hours: t.hours * scale }));
+	}
 }
 
 export const taskService = new TaskService();

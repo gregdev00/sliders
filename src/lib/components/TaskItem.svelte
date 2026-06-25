@@ -12,7 +12,7 @@
 		dayLen: number;
 		isActive?: boolean;
 		isFavourite?: boolean;
-		progress: number;
+		progress: number | undefined;
 		onDelete: (id: string) => void;
 		onFavourite: (id: string) => void;
 		onEdit: (task: Task) => void;
@@ -81,11 +81,23 @@
 				style="color:{task.color}"
 			></button>
 			<div class="flex-1 min-w-0">
-				<div
-					class="flex items-center gap-2 mb-0.5 tracking-[-0.01em] overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer text-[15px] font-medium text-text"
+				<button
+					onclick={() => onEdit({ ...task })}
+					class="w-full flex items-center gap-2 mb-0.5 tracking-[-0.01em] overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer text-[15px] font-medium text-text"
+					type="button"
 				>
 					<span class="overflow-hidden text-ellipsis whitespace-nowrap">{task.name}</span>
-				</div>
+					{#if isActive}
+						<span
+							class="inline-flex items-center gap-1 px-1.75 py-0.5 rounded-full font-mono text-[9px] font-semibold shrink-0 tracking-[0.08em] uppercase"
+							style="background: {task.color}22; color: {task.color}"
+						>
+							<span class="size-1.25 rounded-full animate-pulse" style="background: {task.color}"
+							></span>
+							Now</span
+						>
+					{/if}
+				</button>
 				<div class="flex gap-2 items-center font-mono text-[11px] text-text-3">
 					<span>{formatTime(taskStart)}</span>
 					<span class="opacity-40">→</span>
@@ -94,15 +106,23 @@
 					<span class="font-medium" style="color:{task.color}">{formatHours(task.hours)}</span>
 				</div>
 			</div>
-			<div class="flex gap-0.5 shrink-0">
+			<div class="group/row flex gap-0.5 shrink-0">
 				{#if !task.locked}
-					<div class="flex gap-px mr-1">
+					<div
+						class="flex gap-px mr-1
+           				hover-device:opacity-0
+           				hover-device:transition-opacity
+           				hover-device:duration-150
+           				hover-device:group-hover/row:opacity-100"
+					>
 						<Button
 							onclick={() => nudge(-1)}
 							iconOnly
 							outline
+							ghost
 							size="sm"
 							aria-label="Decrease {task.name}"
+							style="color: var(--text-4)"
 							><svg
 								width="12"
 								height="12"
@@ -117,8 +137,10 @@
 							onclick={() => nudge(1)}
 							iconOnly
 							outline
+							ghost
 							size="sm"
 							aria-label="Increase {task.name}"
+							style="color: var(--text-4)"
 						>
 							<svg
 								width="12"
@@ -134,12 +156,19 @@
 						</Button>
 					</div>
 				{/if}
-				<Button iconOnly outline size="sm" aria-label="Save favourite">
+				<Button
+					iconOnly
+					outline
+					ghost
+					size="sm"
+					aria-label={isFavourite ? 'Remove favourite' : 'Save favourite'}
+					style="color: {isFavourite ? 'var(--accent-3)' : 'var(--text-4)'}"
+				>
 					<svg
 						width="16"
 						height="16"
 						viewBox="0 0 24 24"
-						fill="none"
+						fill={isFavourite ? 'currentColor' : 'none'}
 						stroke="currentColor"
 						stroke-width="2"
 						stroke-linecap="round"
@@ -153,6 +182,7 @@
 					onclick={() => onLock(task.id, { locked: !task.locked })}
 					iconOnly
 					outline
+					ghost
 					size="sm"
 					aria-label={task.locked ? 'Unlock' : 'Lock'}
 					style="color: {task.locked ? 'var(--accent-2)' : 'var(--text-4)'}"
@@ -191,6 +221,8 @@
 					<Button
 						iconOnly
 						outline
+						ghost
+						color="danger"
 						size="sm"
 						aria-label="Delete"
 						onclick={() => onDelete?.(task.id)}
