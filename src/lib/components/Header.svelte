@@ -2,7 +2,6 @@
 	import { type Snippet } from 'svelte';
 	import ThemeSwitcher from './ThemeSwitcher.svelte';
 	import Button from './Button.svelte';
-	import { settingsService } from '$lib/services/SettingsService.svelte';
 	import SyncBadge from './SyncBadge.svelte';
 	import { authService } from '$lib/services/AuthService.svelte';
 	import { formatHours, formatTime } from '$lib/utils/formatUtils';
@@ -14,12 +13,22 @@
 		remaining: number;
 		over: boolean;
 		perfect: boolean;
+		stepSize: number;
 		onHelpClick: () => void;
 		tabList?: Snippet;
 	}
 
-	let { currentTime, total, dayLen, remaining, over, perfect, onHelpClick, tabList }: Props =
-		$props();
+	let {
+		currentTime,
+		total,
+		dayLen,
+		remaining,
+		over,
+		perfect,
+		stepSize,
+		onHelpClick,
+		tabList
+	}: Props = $props();
 	const formattedTotal = $derived(perfect ? formatHours(dayLen) : formatHours(Math.abs(remaining)));
 	const progress = $derived(Math.min(100, (total / dayLen) * 100));
 </script>
@@ -33,7 +42,7 @@
 				<div class="flex gap-2 items-center text-[11px] text-text-3 mt-0.5 font-mono">
 					<span class="tabular-nums">{formatTime(currentTime)}</span>
 					<span class="opacity-40 select-none">·</span>
-					<span>{settingsService.snapSize}m</span>
+					<span>{stepSize}m</span>
 					{#if authService.isAuthenticated}
 						<SyncBadge class="ml-0.75" onlyCircle />
 					{/if}

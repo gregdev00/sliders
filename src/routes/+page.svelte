@@ -14,7 +14,6 @@
 
 	import { CIRCULAR_SLIDER_CONFIG } from '$lib/constants/sliderConfig';
 	import { taskService } from '$lib/services/TaskService.svelte';
-	import { settingsService } from '$lib/services/SettingsService.svelte';
 	import { toastService } from '$lib/services/ToastService.svelte';
 
 	import {
@@ -35,6 +34,7 @@
 	import type { ISODateString } from '$lib/types/isoDateString';
 	import Accordion from '$lib/components/Accordion.svelte';
 	import clsx from 'clsx';
+	import { syncService } from '$lib/services/SyncService.svelte';
 
 	let helpModalOpen = $state(false);
 	let editModalOpen = $state(false);
@@ -67,6 +67,20 @@
 		}, 1000);
 
 		return () => clearInterval(interval);
+	});
+
+	let appState = $state(syncService.initState());
+
+	// Auto-saves configuration preferences whenever they alter
+	$effect(() => {
+		syncService.saveSettings({
+			stepSize: appState.stepSize,
+			theme: appState.theme,
+			showTimeline: appState.showTimeline,
+			dayStart: appState.dayStart,
+			dayEnd: appState.dayEnd,
+			favourites: appState.favourites
+		});
 	});
 
 	let selectedTaskId: string | null = $state(null);
@@ -132,10 +146,7 @@
 	function startNow() {
 		const now = new Date(),
 			m = now.getHours() * 60 + now.getMinutes();
-		const newStart = Math.min(
-			(Math.ceil(m / settingsService.snapSize) * settingsService.snapSize) / 60,
-			23.5
-		);
+		const newStart = Math.min((Math.ceil(m / appState.stepSize) * appState.stepSize) / 60, 23.5);
 		setDayWindow(newStart, dayEnd);
 		toastService.showToast('Start = now');
 	}
@@ -237,14 +248,16 @@
 					</Button>
 				</div>
 			</div>
-			{#if settingsService.showTimeline && taskService.tasks.length > 0}
+			{#if appState.showTimeline && taskService.tasks.length > 0}
 				<div class="bg-bg-elev border border-border rounded-main p-3.5 mb-4">
 					<Timeline tasks={taskService.tasks} {dayLen} {dayStart} />
 				</div>
 			{/if}
 		</div>
 		<div>
-			<div class="mb-3.5"><Settings /></div>
+			<div class="mb-3.5">
+				<Settings bind:stepSize={appState.stepSize} bind:showTimeline={appState.showTimeline} />
+			</div>
 			<div class="mb-3.5">
 				<TaskList
 					{isToday}
@@ -252,7 +265,7 @@
 					{activeProgress}
 					{dayStart}
 					{dayLen}
-					stepMinutes={settingsService.snapSize}
+					stepMinutes={appState.stepSize}
 					{handleOnEdit}
 				/>
 			</div>
@@ -268,6 +281,7 @@
 		{remaining}
 		{over}
 		{perfect}
+		stepSize={appState.stepSize}
 		onHelpClick={() => (helpModalOpen = true)}
 	>
 		{#snippet tabList()}
@@ -289,12 +303,7 @@
 		{@render dayLayoutContent()}
 	</TabPanel>
 	<TabPanel id="week">
-		<WeekView
-			{activeDate}
-			{todayTasks}
-			snapSize={settingsService.snapSize}
-			onDateSelect={switchDate}
-		/>
+		<WeekView {activeDate} {todayTasks} snapSize={appState.stepSize} onDateSelect={switchDate} />
 	</TabPanel>
 </Tabs>
 

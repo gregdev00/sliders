@@ -3,14 +3,16 @@
 	import Button from '$lib/components/Button.svelte';
 	import Switch from '$lib/components/Switch.svelte';
 	import { STEPS } from '$lib/constants/stepSizes';
-	import { settingsService } from '$lib/services/SettingsService.svelte';
 
 	import clsx from 'clsx';
 	import Account from './Account.svelte';
 
-	function onSnapSizeClick(snapSize: number) {
-		settingsService.snapSize = snapSize;
+	interface Props {
+		stepSize: number;
+		showTimeline: boolean;
 	}
+
+	let { stepSize = $bindable(), showTimeline = $bindable() }: Props = $props();
 </script>
 
 <Accordion>
@@ -60,7 +62,7 @@
 					<div class="text-[14px] font-medium">Show timeline</div>
 					<div class="text-[12px] text-text-3 mt-0.5">Linear strip below the donut</div>
 				</div>
-				<Switch bind:checked={settingsService.showTimeline} />
+				<Switch bind:checked={showTimeline} />
 			</div>
 
 			<div class="text-[11px] tracking-[0.06em] font-mono text-text-3 uppercase font-medium mb-2">
@@ -69,8 +71,8 @@
 			<div class="grid grid-cols-4 gap-1.5 mb-2">
 				{#each STEPS as step}
 					<Button
-						color={settingsService.snapSize === step.minute ? 'accent' : 'base'}
-						onclick={() => onSnapSizeClick(step.minute)}>{step.label}</Button
+						color={stepSize === step.minute ? 'accent' : 'base'}
+						onclick={() => (stepSize = step.minute)}>{step.label}</Button
 					>
 				{/each}
 			</div>
