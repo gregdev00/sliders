@@ -32,7 +32,7 @@
 		<div
 			class="flex h-full items-center justify-start overflow-hidden border-r border-bg-elev"
 			title={`${segment.name} · ${segment.hours}h`}
-			style:width="{w}%;"
+			style:width="{w}%"
 			style:background={segment.color}
 		>
 			{#if w > 10}
