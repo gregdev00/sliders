@@ -124,6 +124,17 @@
 		return (((end - start) % 24) + 24) % 24;
 	}
 
+	function startNow() {
+		const now = new Date(),
+			m = now.getHours() * 60 + now.getMinutes();
+		const newStart = Math.min(
+			(Math.ceil(m / settingsService.snapSize) * settingsService.snapSize) / 60,
+			23.5
+		);
+		setDayWindow(newStart, dayEnd);
+		toastService.showToast('Start = now');
+	}
+
 	function goToToday(e: TabClickEvent) {
 		e.preventDefault();
 		switchDate(getTodayDateISO(), true);
@@ -191,21 +202,7 @@
 						{formatHours(dayLen)}
 					</div>
 					<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
-					<Button
-						size="sm"
-						outline
-						onclick={() => {
-							const now = new Date(),
-								m = now.getHours() * 60 + now.getMinutes();
-							const newStart = Math.min(
-								(Math.ceil(m / settingsService.snapSize) * settingsService.snapSize) / 60,
-								23.5
-							);
-							setDayWindow(newStart, dayEnd);
-							toastService.showToast('Start = now');
-						}}
-						class="min-h-32"
-					>
+					<Button size="sm" outline onclick={startNow} class="min-h-32">
 						<svg
 							width="14"
 							height="14"
