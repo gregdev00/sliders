@@ -3,6 +3,7 @@ import type { Day } from '$lib/types/day';
 import type { ISODateString } from '$lib/types/isoDateString';
 import type { SyncStatus } from '$lib/types/syncStatus';
 import type { Task } from '$lib/types/task';
+import type { theme } from '$lib/types/theme';
 import type { Week, WeekDay } from '$lib/types/week';
 import { getTodayDateISO } from '$lib/utils/formatUtils';
 import { getStorageItem, setStorageItem } from '$lib/utils/storageUtils';
@@ -10,7 +11,7 @@ import { toastService } from './ToastService.svelte';
 
 export interface AppSettings {
 	stepSize: number;
-	theme: string;
+	theme: theme;
 	showTimeline: boolean;
 	dayStart: number;
 	dayEnd: number;
@@ -78,7 +79,7 @@ class SyncService {
 			// Settings
 			favourites: savedSettings?.favourites ?? [],
 			stepSize: savedSettings?.stepSize ?? 15,
-			theme: savedSettings?.theme ?? '',
+			theme: savedSettings?.theme ?? 'system',
 			showTimeline: savedSettings?.showTimeline ?? true,
 			dayStart: savedSettings?.dayStart ?? 8,
 			dayEnd: savedSettings?.dayEnd ?? 22

@@ -281,7 +281,7 @@
 		{remaining}
 		{over}
 		{perfect}
-		stepSize={appState.stepSize}
+		{appState}
 		onHelpClick={() => (helpModalOpen = true)}
 	>
 		{#snippet tabList()}

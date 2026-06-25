@@ -1,14 +1,25 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import Button from './Button.svelte';
+	import type { AppDataState, AppSettings } from '$lib/services/SyncService.svelte';
+	import type { theme } from '$lib/types/theme';
 
-	// Grab everything synchronously right away
-	const savedTheme = localStorage.getItem('theme');
-	const prefersLight = window.matchMedia('(prefers-color-scheme: light)').matches;
-	const initialTheme = savedTheme || (prefersLight ? 'light' : 'dark');
+	interface Props {
+		appState: AppSettings & AppDataState;
+	}
 
-	// Set the reactive state immediately. Svelte will boot up with the correct theme.
-	let currentTheme = $state(initialTheme);
+	let { appState = $bindable() }: Props = $props();
+
+	// Helper to resolve what the actual DOM layout should be
+	function resolveVisualTheme(themeValue: theme): 'light' | 'dark' {
+		if (themeValue === 'system') {
+			return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+		}
+		return themeValue;
+	}
+
+	// Derive the actual active layout look reactively for the icon check
+	let currentVisualLook = $derived(resolveVisualTheme(appState.theme));
 
 	onMount(() => {
 		// Drop the transition-blocking class on the next animation frames
@@ -18,11 +29,12 @@
 			});
 		});
 
-		// Listen for system theme changes if the user hasn't explicitly locked in a preference
+		// Listen for system theme changes
 		const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
-		const handleChange = (e: MediaQueryListEvent) => {
-			if (!localStorage.getItem('theme')) {
-				currentTheme = e.matches ? 'light' : 'dark';
+		const handleChange = () => {
+			// Force a DOM attributes recalculation if the user is bound to system preferences
+			if (appState.theme === 'system') {
+				document.documentElement.setAttribute('data-theme', resolveVisualTheme('system'));
 			}
 		};
 
@@ -33,34 +45,19 @@
 		};
 	});
 
-	// Keep the HTML attribute and localStorage completely synchronized
+	// Sync the DOM node root whenever appState.theme or the system preference changes
 	$effect(() => {
-		document.documentElement.setAttribute('data-theme', currentTheme);
-
-		// Only save to localStorage if it's explicitly set (handling the system-default boundary)
-		const saved = localStorage.getItem('theme');
-		if (
-			saved ||
-			currentTheme !==
-				(window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark')
-		) {
-			localStorage.setItem('theme', currentTheme);
-		}
+		document.documentElement.setAttribute('data-theme', currentVisualLook);
 	});
 
 	function toggleTheme() {
-		currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
-		localStorage.setItem('theme', currentTheme); // Lock it in on click
-	}
-
-	function resetToSystem() {
-		localStorage.removeItem('theme');
-		currentTheme = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+		// Toggle sequence loops through dark -> light
+		appState.theme = currentVisualLook === 'dark' ? 'light' : 'dark';
 	}
 </script>
 
 <Button outline iconOnly onclick={toggleTheme} aria-label="Toggle theme">
-	{#if currentTheme === 'dark'}
+	{#if currentVisualLook === 'dark'}
 		<svg
 			width="18"
 			height="18"

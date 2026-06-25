@@ -5,6 +5,7 @@
 	import SyncBadge from './SyncBadge.svelte';
 	import { authService } from '$lib/services/AuthService.svelte';
 	import { formatHours, formatTime } from '$lib/utils/formatUtils';
+	import type { AppSettings } from '$lib/services/SyncService.svelte';
 
 	interface Props {
 		currentTime: Date;
@@ -13,7 +14,7 @@
 		remaining: number;
 		over: boolean;
 		perfect: boolean;
-		stepSize: number;
+		appState: AppSettings;
 		onHelpClick: () => void;
 		tabList?: Snippet;
 	}
@@ -25,7 +26,7 @@
 		remaining,
 		over,
 		perfect,
-		stepSize,
+		appState,
 		onHelpClick,
 		tabList
 	}: Props = $props();
@@ -42,7 +43,7 @@
 				<div class="flex gap-2 items-center text-[11px] text-text-3 mt-0.5 font-mono">
 					<span class="tabular-nums">{formatTime(currentTime)}</span>
 					<span class="opacity-40 select-none">·</span>
-					<span>{stepSize}m</span>
+					<span>{appState.stepSize}m</span>
 					{#if authService.isAuthenticated}
 						<SyncBadge class="ml-0.75" onlyCircle />
 					{/if}
@@ -63,7 +64,7 @@
 					{over ? 'OVER' : perfect ? 'FULL' : 'FREE'}
 				</div>
 			</div>
-			<ThemeSwitcher />
+			<ThemeSwitcher {appState} />
 			<Button iconOnly outline aria-label="Keyboard shortcuts" onclick={onHelpClick}
 				><svg
 					width="18"
