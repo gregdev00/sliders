@@ -11,6 +11,7 @@
 	import ShortcutItem from '$lib/components/ShortcutItem.svelte';
 	import TaskList from '$lib/components/TaskList.svelte';
 	import Button from '$lib/components/Button.svelte';
+	import { type theme as ThemeType } from '$lib/types/theme';
 
 	import { CIRCULAR_SLIDER_CONFIG } from '$lib/constants/sliderConfig';
 	import { taskService } from '$lib/services/TaskService.svelte';
@@ -281,8 +282,10 @@
 		{remaining}
 		{over}
 		{perfect}
-		{appState}
+		theme={appState.theme}
+		stepSize={appState.stepSize}
 		onHelpClick={() => (helpModalOpen = true)}
+		onThemeChange={(newTheme: ThemeType) => (appState.theme = newTheme)}
 	>
 		{#snippet tabList()}
 			<TabList>

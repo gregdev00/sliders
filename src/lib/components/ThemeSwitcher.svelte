@@ -2,16 +2,17 @@
 	import { onMount } from 'svelte';
 	import Button from './Button.svelte';
 	import type { AppDataState, AppSettings } from '$lib/services/SyncService.svelte';
-	import type { theme } from '$lib/types/theme';
+	import type { theme as ThemeType } from '$lib/types/theme';
 
 	interface Props {
-		appState: AppSettings & AppDataState;
+		theme: ThemeType;
+		onThemeChange: (newTheme: 'dark' | 'light') => void;
 	}
 
-	let { appState = $bindable() }: Props = $props();
+	let { theme, onThemeChange }: Props = $props();
 
 	// Helper to resolve what the actual DOM layout should be
-	function resolveVisualTheme(themeValue: theme): 'light' | 'dark' {
+	function resolveVisualTheme(themeValue: ThemeType): 'light' | 'dark' {
 		if (themeValue === 'system') {
 			return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
 		}
@@ -19,7 +20,7 @@
 	}
 
 	// Derive the actual active layout look reactively for the icon check
-	let currentVisualLook = $derived(resolveVisualTheme(appState.theme));
+	let currentVisualLook = $derived(resolveVisualTheme(theme));
 
 	onMount(() => {
 		// Drop the transition-blocking class on the next animation frames
@@ -33,7 +34,7 @@
 		const mediaQuery = window.matchMedia('(prefers-color-scheme: light)');
 		const handleChange = () => {
 			// Force a DOM attributes recalculation if the user is bound to system preferences
-			if (appState.theme === 'system') {
+			if (theme === 'system') {
 				document.documentElement.setAttribute('data-theme', resolveVisualTheme('system'));
 			}
 		};
@@ -52,7 +53,8 @@
 
 	function toggleTheme() {
 		// Toggle sequence loops through dark -> light
-		appState.theme = currentVisualLook === 'dark' ? 'light' : 'dark';
+		const newTheme = currentVisualLook === 'dark' ? 'light' : 'dark';
+		onThemeChange(newTheme);
 	}
 </script>
 
