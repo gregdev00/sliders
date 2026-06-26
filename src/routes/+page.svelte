@@ -70,17 +70,17 @@
 		return () => clearInterval(interval);
 	});
 
-	let appState = $state(syncService.initState());
+	syncService.startAutoSync(() => activeDate);
 
 	// Auto-saves configuration preferences whenever they alter
 	$effect(() => {
 		syncService.saveSettings({
-			stepSize: appState.stepSize,
-			theme: appState.theme,
-			showTimeline: appState.showTimeline,
-			dayStart: appState.dayStart,
-			dayEnd: appState.dayEnd,
-			favourites: appState.favourites
+			stepSize: syncService.appState.stepSize,
+			theme: syncService.appState.theme,
+			showTimeline: syncService.appState.showTimeline,
+			dayStart: syncService.appState.dayStart,
+			dayEnd: syncService.appState.dayEnd,
+			favourites: syncService.appState.favourites
 		});
 	});
 
@@ -147,7 +147,10 @@
 	function startNow() {
 		const now = new Date(),
 			m = now.getHours() * 60 + now.getMinutes();
-		const newStart = Math.min((Math.ceil(m / appState.stepSize) * appState.stepSize) / 60, 23.5);
+		const newStart = Math.min(
+			(Math.ceil(m / syncService.appState.stepSize) * syncService.appState.stepSize) / 60,
+			23.5
+		);
 		setDayWindow(newStart, dayEnd);
 		toastService.showToast('Start = now');
 	}
@@ -199,6 +202,10 @@
 		editTask = null;
 		editModalOpen = false;
 	}
+
+	function handleOnReset() {
+		syncService.wipeData();
+	}
 </script>
 
 {#snippet dayLayoutContent()}
@@ -249,7 +256,7 @@
 					</Button>
 				</div>
 			</div>
-			{#if appState.showTimeline && taskService.tasks.length > 0}
+			{#if syncService.appState.showTimeline && taskService.tasks.length > 0}
 				<div class="bg-bg-elev border border-border rounded-main p-3.5 mb-4">
 					<Timeline tasks={taskService.tasks} {dayLen} {dayStart} />
 				</div>
@@ -257,7 +264,11 @@
 		</div>
 		<div>
 			<div class="mb-3.5">
-				<Settings bind:stepSize={appState.stepSize} bind:showTimeline={appState.showTimeline} />
+				<Settings
+					bind:stepSize={syncService.appState.stepSize}
+					bind:showTimeline={syncService.appState.showTimeline}
+					onReset={handleOnReset}
+				/>
 			</div>
 			<div class="mb-3.5">
 				<TaskList
@@ -266,7 +277,7 @@
 					{activeProgress}
 					{dayStart}
 					{dayLen}
-					stepMinutes={appState.stepSize}
+					stepMinutes={syncService.appState.stepSize}
 					{handleOnEdit}
 				/>
 			</div>
@@ -282,10 +293,10 @@
 		{remaining}
 		{over}
 		{perfect}
-		theme={appState.theme}
-		stepSize={appState.stepSize}
+		theme={syncService.appState.theme}
+		stepSize={syncService.appState.stepSize}
 		onHelpClick={() => (helpModalOpen = true)}
-		onThemeChange={(newTheme: ThemeType) => (appState.theme = newTheme)}
+		onThemeChange={(newTheme: ThemeType) => (syncService.appState.theme = newTheme)}
 	>
 		{#snippet tabList()}
 			<TabList>
@@ -306,7 +317,12 @@
 		{@render dayLayoutContent()}
 	</TabPanel>
 	<TabPanel id="week">
-		<WeekView {activeDate} {todayTasks} snapSize={appState.stepSize} onDateSelect={switchDate} />
+		<WeekView
+			{activeDate}
+			{todayTasks}
+			snapSize={syncService.appState.stepSize}
+			onDateSelect={switchDate}
+		/>
 	</TabPanel>
 </Tabs>
 

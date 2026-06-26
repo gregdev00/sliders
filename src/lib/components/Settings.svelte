@@ -10,9 +10,17 @@
 	interface Props {
 		stepSize: number;
 		showTimeline: boolean;
+		onReset: () => void;
 	}
 
-	let { stepSize = $bindable(), showTimeline = $bindable() }: Props = $props();
+	let { stepSize = $bindable(), showTimeline = $bindable(), onReset }: Props = $props();
+
+	let confirmReset = $state(false);
+
+	function handleOnReset() {
+		confirmReset = false;
+		onReset?.();
+	}
 </script>
 
 <Accordion>
@@ -82,7 +90,21 @@
 			<div class="text-[11px] tracking-[0.06em] font-mono text-text-3 uppercase font-medium mb-2">
 				Reset
 			</div>
-			<Button color="danger" outline class="w-full">Reset app data</Button>
+			{#if !confirmReset}
+				<Button onclick={() => (confirmReset = true)} color="danger" outline class="w-full"
+					>Reset app data</Button
+				>
+			{:else}
+				<div class="bg-bg-elev border border-danger rounded-main p-3.5 animate-fadeUp">
+					<div class="text-[13px] text-danger mb-3 leading-[1.6]">
+						Reset everything? Tasks, favourites and settings will be wiped.
+					</div>
+					<div class="flex gap-2">
+						<Button onclick={handleOnReset} class="flex-1" color="danger">Yes, reset</Button>
+						<Button onclick={() => (confirmReset = false)} class="flex-1">Cancel</Button>
+					</div>
+				</div>
+			{/if}
 		</div>
 	{/snippet}
 </Accordion>
