@@ -72,7 +72,7 @@ class SyncService {
 
 	constructor() {
 		// Hydration
-		this.appState = this.initState();
+		this.#initState();
 	}
 
 	// Private helpers
@@ -187,14 +187,14 @@ class SyncService {
 	 * Initializes the full app state on first load.
 	 * Settings come from SETTINGS_KEY; task data from the day key (or legacy fallback).
 	 */
-	initState(): AppSettings & AppDataState {
+	#initState(): void {
 		const today = getTodayDateISO();
 
 		const savedSettings = getStorageItem<Partial<AppSettings>>(this.SETTINGS_KEY);
 		const savedData =
 			this.loadDateState(today) ?? getStorageItem<Partial<AppDataState>>(this.STORAGE_KEY);
 
-		return {
+		this.appState = {
 			tasks: savedData?.tasks ?? DEFAULT_TASKS,
 			favourites: savedSettings?.favourites ?? [],
 			stepSize: savedSettings?.stepSize ?? 15,
@@ -203,6 +203,8 @@ class SyncService {
 			dayStart: savedSettings?.dayStart ?? 8,
 			dayEnd: savedSettings?.dayEnd ?? 22
 		};
+
+		taskService.init(this.appState.tasks);
 	}
 
 	/**
@@ -310,7 +312,7 @@ class SyncService {
 		toastService.showToast('Successfully wiped data');
 
 		// Get fresh default state
-		this.appState = this.initState();
+		this.#initState();
 	}
 }
 

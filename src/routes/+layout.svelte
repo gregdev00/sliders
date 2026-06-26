@@ -1,11 +1,8 @@
 <script lang="ts">
 	import './layout.css';
 	import favicon from '$lib/assets/favicon.svg';
-	import { taskService } from '$lib/services/TaskService.svelte';
 
 	let { children } = $props();
-
-	taskService.init();
 </script>
 
 <svelte:head>

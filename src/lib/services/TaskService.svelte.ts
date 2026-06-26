@@ -9,8 +9,8 @@ import { TIME_PRECISION_CONFIG } from '$lib/constants/timePrecisionConfig';
 const normalizeName = (name: string) => name.trim().toLowerCase();
 
 class TaskService {
-	async init() {
-		this.#tasks = JSON.parse(JSON.stringify(DEFAULT_TASKS));
+	init(tasks: Task[]) {
+		this.#tasks = tasks;
 	}
 
 	#tasks: Task[] = $state([]);
