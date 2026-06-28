@@ -36,7 +36,7 @@ export interface AppDataState {
  * This means rapid slider adjustments never flood storage or the network.
  */
 class SyncService {
-	// ─── Storage keys ─────────────────────────────────────────────────────────
+	// Storage keys
 	readonly DAY_KEY_PREFIX = 'sliders_day_' as const;
 	readonly STORAGE_KEY = 'sliders_data' as const;
 	readonly SETTINGS_KEY = 'sliders_settings_v1' as const;
@@ -52,7 +52,8 @@ class SyncService {
 	#cloudTimer: ReturnType<typeof setTimeout> | null = null;
 	#settingsTimer: ReturnType<typeof setTimeout> | null = null;
 
-	// This serves as the single source of truth for app state defaults
+	// App state (single source of truth)
+	// Lives here so the page never has to manage or pass settings around.
 	appState = $state<AppSettings & AppDataState>({
 		tasks: DEFAULT_TASKS,
 		favourites: [],
@@ -63,7 +64,7 @@ class SyncService {
 		dayEnd: 22
 	});
 
-	// Reactive state
+	// Sync status
 	#syncStatus = $state<SyncStatus>('synced');
 
 	get syncStatus(): SyncStatus {
@@ -71,7 +72,6 @@ class SyncService {
 	}
 
 	constructor() {
-		// Hydration
 		this.#initState();
 	}
 
@@ -90,7 +90,7 @@ class SyncService {
 	}
 
 	/**
-	 * Pushes a day's task snapshot to Firebase.
+	 * Pushes snapshot to Firebase.
 	 */
 	async #pushToFirebase(date: ISODateString, tasks: Task[]): Promise<void> {
 		if (!authService.user) return;
@@ -102,91 +102,27 @@ class SyncService {
 			this.#syncStatus = 'synced';
 		} catch (error) {
 			console.error('[SyncService] Firebase push failed:', error);
-			toastService.showToast('Cloud sync failed - changes saved locally');
+			toastService.showToast('Cloud sync failed – changes saved locally');
 			this.#syncStatus = 'error';
 		}
 	}
 
-	// Public API
+	#writeSettings(): void {
+		// Extract only the settings fields from appState – tasks are saved separately
+		const { stepSize, theme, showTimeline, dayStart, dayEnd, favourites } = this.appState;
+		const settings: AppSettings = { stepSize, theme, showTimeline, dayStart, dayEnd, favourites };
 
-	/**
-	 * Persists a day's task list to localStorage.
-	 * Debounced separately from Firebase so local saves stay fast.
-	 */
-	saveDayState(date: ISODateString, data: Partial<AppDataState>): void {
-		const key = `${this.DAY_KEY_PREFIX}${date}`;
 		this.#syncStatus = 'pending';
 		try {
-			setStorageItem(key, data);
+			setStorageItem<AppSettings>(this.SETTINGS_KEY, settings);
 			this.#syncStatus = 'synced';
 		} catch (error) {
-			console.error('[SyncService] Failed to save day state:', error);
-			toastService.showToast('Failed to save – storage may be full');
+			console.error('[SyncService] Failed to save settings:', error);
+			toastService.showToast('Failed to save settings');
 			this.#syncStatus = 'error';
 		}
 	}
 
-	/**
-	 * Starts a reactive auto-sync loop tied to taskService.tasks.
-	 *
-	 * Must be called inside a Svelte component or reactive root so $effect works.
-	 * Typically called once in +page.svelte on mount.
-	 *
-	 * Writes are split into two debounced pipelines:
-	 *  1. localStorage  – 300 ms after the last change
-	 *  2. Firebase      – 2 s   after the last change (only when authed)
-	 *
-	 * @param getDate  Reactive accessor returning the currently active date.
-	 *                 Called inside $effect so it participates in tracking.
-	 */
-	startAutoSync(getDate: () => ISODateString): void {
-		// Wrapper objects so #debounce can mutate the timer reference
-		const localRef = { value: this.#localTimer };
-		const cloudRef = { value: this.#cloudTimer };
-
-		$effect(() => {
-			// Reading taskService.tasks here registers this effect as a dependent –
-			// any mutation to tasks will re-run the effect automatically.
-			const tasks: Task[] = JSON.parse(JSON.stringify(taskService.tasks));
-			const date = getDate();
-
-			// localStorage write (fast)
-			this.#debounce(localRef, this.LOCAL_DEBOUNCE_MS, () => {
-				this.saveDayState(date, { tasks });
-			});
-
-			// Firebase write (slow, only when authed)
-			this.#debounce(cloudRef, this.CLOUD_DEBOUNCE_MS, () => {
-				void this.#pushToFirebase(date, tasks);
-			});
-
-			// Sync timer refs back so future calls share the same handles
-			this.#localTimer = localRef.value;
-			this.#cloudTimer = cloudRef.value;
-		});
-	}
-
-	/**
-	 * Loads structural tasks targeting specific days (ignoring settings properties).
-	 */
-	loadDateState(dateString: ISODateString): Partial<AppDataState> | null {
-		const key = `${this.DAY_KEY_PREFIX}${dateString}`;
-		const dailyData = getStorageItem<Partial<AppDataState>>(key);
-
-		if (dailyData) return dailyData;
-
-		// Legacy fallback: today's tasks may still be under the old flat key
-		if (dateString === getTodayDateISO()) {
-			return getStorageItem<Partial<AppDataState>>(this.STORAGE_KEY);
-		}
-
-		return null;
-	}
-
-	/**
-	 * Initializes the full app state on first load.
-	 * Settings come from SETTINGS_KEY; task data from the day key (or legacy fallback).
-	 */
 	#initState(): void {
 		const today = getTodayDateISO();
 
@@ -207,27 +143,100 @@ class SyncService {
 		taskService.init(this.appState.tasks);
 	}
 
+	//  Public API
+
 	/**
-	 * Saves UI/app preferences to localStorage.
-	 * Debounced to avoid hammering storage on rapid setting changes
-	 * (e.g. the user dragging a theme or step-size picker).
+	 * Persists a day's task list to localStorage immediately (no debounce).
+	 * Called by startAutoSync – not typically needed directly.
 	 */
-	saveSettings(settings: AppSettings): void {
+	saveDayState(date: ISODateString, data: Partial<AppDataState>): void {
+		const key = `${this.DAY_KEY_PREFIX}${date}`;
+		this.#syncStatus = 'pending';
+		try {
+			setStorageItem(key, data);
+			this.#syncStatus = 'synced';
+		} catch (error) {
+			console.error('[SyncService] Failed to save day state:', error);
+			toastService.showToast('Failed to save – storage may be full');
+			this.#syncStatus = 'error';
+		}
+	}
+
+	/**
+	 * Starts all reactive auto-sync loops. Call once from +page.svelte (top-level script,
+	 * not inside $effect) so Svelte's reactive context is available.
+	 *
+	 * Registers two independent $effect pipelines:
+	 *
+	 *  1. Tasks pipeline  – watches taskService.tasks + activeDate
+	 *     • localStorage write after LOCAL_DEBOUNCE_MS
+	 *     • Firebase write  after CLOUD_DEBOUNCE_MS (only when authed)
+	 *
+	 *  2. Settings pipeline – watches the settings fields of appState
+	 *     • localStorage write after SETTINGS_DEBOUNCE_MS
+	 *     • These are deliberately separate so a theme change doesn't
+	 *       reset the task-write debounce timer and vice versa.
+	 *
+	 * @param getDate  Reactive accessor for the currently active date.
+	 */
+	startAutoSync(getDate: () => ISODateString): void {
+		const localRef = { value: this.#localTimer };
+		const cloudRef = { value: this.#cloudTimer };
 		const settingsRef = { value: this.#settingsTimer };
 
-		this.#debounce(settingsRef, this.LOCAL_DEBOUNCE_MS, () => {
-			this.#syncStatus = 'pending';
-			try {
-				setStorageItem<AppSettings>(this.SETTINGS_KEY, settings);
-				this.#syncStatus = 'synced';
-			} catch (error) {
-				console.error('[SyncService] Failed to save settings:', error);
-				toastService.showToast('Failed to save settings');
-				this.#syncStatus = 'error';
-			}
+		// Pipeline 1: tasks
+		$effect(() => {
+			const tasks: Task[] = JSON.parse(JSON.stringify(taskService.tasks));
+			const date = getDate();
+
+			this.#debounce(localRef, this.LOCAL_DEBOUNCE_MS, () => {
+				this.saveDayState(date, { tasks });
+			});
+
+			this.#debounce(cloudRef, this.CLOUD_DEBOUNCE_MS, () => {
+				void this.#pushToFirebase(date, tasks);
+			});
+
+			this.#localTimer = localRef.value;
+			this.#cloudTimer = cloudRef.value;
 		});
 
-		this.#settingsTimer = settingsRef.value;
+		// Pipeline 2: settings
+		// Destructuring individual fields so Svelte tracks each one separately.
+		// A single `appState` read would only re-run when the object reference
+		// changes, not when its properties mutate.
+		$effect(() => {
+			// Reading these fields registers them as reactive dependencies.
+			// Any change to any of them triggers a debounced settings write.
+			void this.appState.stepSize;
+			void this.appState.theme;
+			void this.appState.showTimeline;
+			void this.appState.dayStart;
+			void this.appState.dayEnd;
+			void this.appState.favourites;
+
+			this.#debounce(settingsRef, this.LOCAL_DEBOUNCE_MS, () => {
+				this.#writeSettings();
+			});
+
+			this.#settingsTimer = settingsRef.value;
+		});
+	}
+
+	/**
+	 * Loads structural tasks targeting specific days (ignoring settings properties).
+	 */
+	loadDateState(dateString: ISODateString): Partial<AppDataState> | null {
+		const key = `${this.DAY_KEY_PREFIX}${dateString}`;
+		const dailyData = getStorageItem<Partial<AppDataState>>(key);
+
+		if (dailyData) return dailyData;
+
+		if (dateString === getTodayDateISO()) {
+			return getStorageItem<Partial<AppDataState>>(this.STORAGE_KEY);
+		}
+
+		return null;
 	}
 
 	/**
@@ -237,10 +246,11 @@ class SyncService {
 	loadWeek(): Week {
 		return (
 			getStorageItem<Week>(this.WEEK_KEY) ??
-			(Array.from(
-				{ length: 7 },
-				(_, i): WeekDay => ({ dayIndex: i, tasks: [], note: '' })
-			) as unknown as Week)
+			(Array.from({ length: 7 }, (_, i): WeekDay => ({
+				dayIndex: i,
+				tasks: [],
+				note: ''
+			})) as unknown as Week)
 		);
 	}
 
@@ -273,44 +283,29 @@ class SyncService {
 		return result;
 	}
 
-	#wipeLocalData() {
+	#wipeLocalData(): void {
 		try {
-			// Collect exact keys defined as properties in this class
 			const staticKeys = [this.STORAGE_KEY, this.SETTINGS_KEY, this.WEEK_KEY, this.USAGE_KEY];
-
 			// Remove the static keys from localStorage
-			for (const key of staticKeys) {
-				localStorage.removeItem(key);
-			}
+			for (const key of staticKeys) localStorage.removeItem(key);
 
-			// Scan and remove any dynamic day keys matching the prefix
-			const dynamicPrefix = this.DAY_KEY_PREFIX;
-
-			// Collect keys first to avoid mutating keys array mid-iteration
 			const keysToRemove: string[] = [];
 			for (let i = 0; i < localStorage.length; i++) {
 				const key = localStorage.key(i);
-				if (key && key.startsWith(dynamicPrefix)) {
-					keysToRemove.push(key);
-				}
+				if (key?.startsWith(this.DAY_KEY_PREFIX)) keysToRemove.push(key);
 			}
+			for (const key of keysToRemove) localStorage.removeItem(key);
 
-			// Purge matching dynamic keys
-			for (const key of keysToRemove) {
-				localStorage.removeItem(key);
-			}
-
-			console.log('[SyncService] LocalStorage keys cleared successfully.');
+			console.log('[SyncService] localStorage cleared.');
 		} catch (error) {
-			console.error('[SyncService] Failed to clear localStorage items:', error);
-			toastService.showToast('Failed clear localStorage items');
+			console.error('[SyncService] Failed to clear localStorage:', error);
+			toastService.showToast('Failed to clear localStorage');
 		}
 	}
 
-	wipeData() {
+	wipeData(): void {
 		this.#wipeLocalData();
 		toastService.showToast('Successfully wiped data');
-
 		// Get fresh default state
 		this.#initState();
 	}

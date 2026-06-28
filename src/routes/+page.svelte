@@ -72,18 +72,6 @@
 
 	syncService.startAutoSync(() => activeDate);
 
-	// Auto-saves configuration preferences whenever they alter
-	$effect(() => {
-		syncService.saveSettings({
-			stepSize: syncService.appState.stepSize,
-			theme: syncService.appState.theme,
-			showTimeline: syncService.appState.showTimeline,
-			dayStart: syncService.appState.dayStart,
-			dayEnd: syncService.appState.dayEnd,
-			favourites: syncService.appState.favourites
-		});
-	});
-
 	let selectedTaskId: string | null = $state(null);
 	let dayStart = $state(8);
 	let dayEnd = $state(22);
