@@ -44,6 +44,61 @@
 
 	function handleOnFavourite(id: string) {}
 
+	function startLongPress(index: number, e: PointerEvent) {
+		const cx = e.clientX,
+			cy = e.clientY;
+		longPressTimer = setTimeout(() => {
+			try {
+				navigator.vibrate?.([10, 30, 10]);
+			} catch {}
+			longDragIdx = index;
+			dragPos = { x: cx, y: cy };
+			bindDragListeners();
+		}, LONG_PRESS_MS);
+	}
+
+	function cancelLongPress() {
+		if (longPressTimer) {
+			clearTimeout(longPressTimer);
+			longPressTimer = null;
+		}
+	}
+
+	function bindDragListeners() {
+		document.body.style.overflow = 'hidden';
+
+		function onMove(e: PointerEvent) {
+			if (e.cancelable) e.preventDefault();
+			dragPos = { x: e.clientX, y: e.clientY };
+
+			if (!taskListEl) return;
+			const cards = taskListEl.querySelectorAll<HTMLElement>('[data-taskcard]');
+			let found: number | null = null;
+			for (let i = 0; i < cards.length; i++) {
+				const r = cards[i].getBoundingClientRect();
+				if (e.clientY >= r.top && e.clientY <= r.bottom) {
+					found = i;
+					break;
+				}
+			}
+			dragOver = found !== null && found !== longDragIdx ? found : null;
+		}
+
+		function onUp() {
+			if (dragOver !== null && longDragIdx !== null && dragOver !== longDragIdx) {
+				taskService.reorderTask(longDragIdx, dragOver);
+			}
+			longDragIdx = null;
+			dragOver = null;
+			document.body.style.overflow = '';
+			window.removeEventListener('pointermove', onMove);
+			window.removeEventListener('pointerup', onUp);
+		}
+
+		window.addEventListener('pointermove', onMove, { passive: false });
+		window.addEventListener('pointerup', onUp);
+	}
+
 	interface Props {
 		isToday: boolean;
 		activeIndex: number;
@@ -56,6 +111,14 @@
 
 	let { isToday, activeIndex, activeProgress, dayStart, dayLen, stepMinutes, handleOnEdit }: Props =
 		$props();
+
+	const LONG_PRESS_MS = 380;
+
+	let longDragIdx = $state<number | null>(null);
+	let dragOver = $state<number | null>(null);
+	let dragPos = $state({ x: 0, y: 0 });
+	let taskListEl = $state<HTMLElement | null>(null);
+	let longPressTimer: ReturnType<typeof setTimeout> | null = null;
 
 	const tasksWithStartTimes = $derived.by(() => {
 		let currentAccumulator = dayStart;
@@ -96,9 +159,21 @@
 			</Button>
 		{/if}
 	</div>
-	<div class="opacity-100 transition-opacity duration-200">
+	<div
+		bind:this={taskListEl}
+		class="transition-opacity duration-200"
+		style:opacity={longDragIdx !== null ? 0.92 : 1}
+	>
 		{#each tasksWithStartTimes as item, index (item.id)}
+			{@const isFloating = longDragIdx === index}
+			{@const isDragTarget = dragOver === index}
 			<div
+				data-taskcard={index}
+				onpointerdown={(e) => startLongPress(index, e)}
+				onpointerup={cancelLongPress}
+				onpointercancel={cancelLongPress}
+				style:opacity={isFloating ? 0.25 : 1}
+				style:transform={isDragTarget ? 'translateY(-3px)' : isFloating ? 'scale(0.98)' : 'none'}
 				animate:flip={{ duration: 200, easing: cubicOut }}
 				transition:slide={{ duration: 150, easing: cubicOut }}
 			>
@@ -127,6 +202,32 @@
 		{/each}
 	</div>
 </div>
+
+<!-- Floating drag ghost -->
+{#if longDragIdx !== null && taskService.tasks[longDragIdx]}
+	{@const task = taskService.tasks[longDragIdx]}
+	<div
+		class="fixed z-300 w-70 pointer-events-none"
+		style:left="{dragPos.x - 140}px"
+		style:top="{dragPos.y - 28}px"
+		style:filter="drop-shadow(0 12px 32px {task.color}66)"
+	>
+		<div
+			class="flex items-center gap-2.5 px-4 py-3 bg-bg-elev border rounded-main"
+			style:border-color={task.color}
+			style:transform="rotate(-1deg) scale(1.04)"
+		>
+			<div class="w-2.5 h-2.5 rounded-full shrink-0" style:background={task.color}></div>
+			<span class="text-[14px] text-text flex-1 overflow-hidden text-ellipsis whitespace-nowrap">
+				{task.name}
+			</span>
+			<span class="font-mono text-[12px] font-semibold tabular-nums" style:color={task.color}>
+				{task.hours}h
+			</span>
+		</div>
+	</div>
+{/if}
+
 <div class="relative flex gap-2 mb-6">
 	<Input
 		bind:value={taskName}

@@ -141,6 +141,12 @@ class TaskService {
 		return true;
 	}
 
+	reorderTask(fromIndex: number, toIndex: number): void {
+		const tasks = [...this.tasks];
+		tasks.splice(toIndex, 0, tasks.splice(fromIndex, 1)[0]);
+		this.#tasks = tasks;
+	}
+
 	scaleToDayLen(newDayLen: number, oldDayLen: number): void {
 		const expanding = newDayLen > oldDayLen;
 
