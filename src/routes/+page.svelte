@@ -198,7 +198,11 @@
 		syncService.beginSwitch();
 
 		// save current day
-		syncService.saveDayState(activeDate, { tasks: taskService.tasks });
+		syncService.saveDayState(activeDate, {
+			tasks: taskService.tasks,
+			dayStart: syncService.appState.dayStart,
+			dayEnd: syncService.appState.dayEnd
+		});
 
 		// load new day
 		const loaded = syncService.loadDateState(dateString);
