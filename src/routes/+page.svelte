@@ -37,6 +37,7 @@
 	import clsx from 'clsx';
 	import { syncService } from '$lib/services/SyncService.svelte';
 	import { tick } from 'svelte';
+	import Footer from '$lib/components/Footer.svelte';
 
 	let helpModalOpen = $state(false);
 	let editModalOpen = $state(false);
@@ -470,3 +471,5 @@
 </Modal>
 
 <ToastList />
+
+<Footer />
