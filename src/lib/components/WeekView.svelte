@@ -48,7 +48,7 @@
 			>
 				<div>
 					<div
-						class="tabular-nums min-w-[120px] text-[22px] font-semibold text-accent leading-none tracking-[-0.02em]"
+						class="tabular-nums min-w-30 text-[22px] font-semibold text-accent leading-none tracking-[-0.02em]"
 					>
 						{formatHours(weekTotal)}
 					</div>
