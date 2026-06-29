@@ -8,7 +8,6 @@
 	import { flip } from 'svelte/animate';
 	import { fade, slide } from 'svelte/transition';
 	import { cubicOut } from 'svelte/easing';
-	import Toast from './Toast.svelte';
 	import { toastService } from '$lib/services/ToastService.svelte';
 
 	let taskName = $state('');
@@ -168,6 +167,7 @@
 			{@const isFloating = longDragIdx === index}
 			{@const isDragTarget = dragOver === index}
 			<div
+				role="listitem"
 				data-taskcard={index}
 				onpointerdown={(e) => startLongPress(index, e)}
 				onpointerup={cancelLongPress}

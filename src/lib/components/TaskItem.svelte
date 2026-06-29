@@ -18,8 +18,6 @@
 		onEdit: (task: Task) => void;
 		onLock: (id: string, updatedFields: Partial<Task>) => void;
 		onChange: (id: string, updatedFields: Partial<Task>) => void;
-		onLongPressStart?: () => void;
-		onLongPressEnd?: () => void;
 	}
 
 	let {
@@ -33,9 +31,7 @@
 		onDelete,
 		onEdit,
 		onLock,
-		onChange,
-		onLongPressStart,
-		onLongPressEnd
+		onChange
 	}: Props = $props();
 
 	const taskEnd = $derived(taskStart + task.hours);
@@ -59,9 +55,6 @@
 		)}
 		style:border-color={isActive ? task.color : null}
 		style:box-shadow={isActive ? `0 0 0 1px ${task.color}55, 0 4px 16px ${task.color}22` : null}
-		onpointerdown={onLongPressStart}
-		onpointerup={onLongPressEnd}
-		onpointercancel={onLongPressEnd}
 		oncontextmenu={(e) => e.preventDefault()}
 	>
 		{#if isActive && typeof progress === 'number'}

@@ -95,6 +95,7 @@
 
 	function handlePointerDown(e: PointerEvent) {
 		if (locked || e.button !== 0) return;
+		e.stopPropagation();
 		e.preventDefault();
 		isDragging = true;
 
