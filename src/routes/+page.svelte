@@ -132,8 +132,6 @@
 
 	const dayLabel = $derived(isToday ? 'Today' : formatDateToShortLabel(activeDate));
 
-	const todayTasks: Task[] = [];
-
 	function calculateDayLen(start: number, end: number) {
 		return (((end - start) % 24) + 24) % 24;
 	}
@@ -353,7 +351,7 @@
 	<TabPanel id="week">
 		<WeekView
 			{activeDate}
-			{todayTasks}
+			todayTasks={taskService.tasks}
 			snapSize={syncService.appState.stepSize}
 			onDateSelect={switchDate}
 		/>

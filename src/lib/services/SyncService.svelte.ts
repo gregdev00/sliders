@@ -22,6 +22,7 @@ export interface AppDataState {
 	tasks: Task[];
 	dayStart: number;
 	dayEnd: number;
+	week: Week;
 }
 
 /**
@@ -51,6 +52,7 @@ class SyncService {
 	#localTimer: ReturnType<typeof setTimeout> | null = null;
 	#cloudTimer: ReturnType<typeof setTimeout> | null = null;
 	#settingsTimer: ReturnType<typeof setTimeout> | null = null;
+	#weekTimer: ReturnType<typeof setTimeout> | null = null;
 
 	#isSwitching = false;
 
@@ -63,7 +65,12 @@ class SyncService {
 		theme: 'system',
 		showTimeline: true,
 		dayStart: 8,
-		dayEnd: 22
+		dayEnd: 22,
+		week: Array.from({ length: 7 }, (_, i) => ({
+			dayIndex: i,
+			tasks: [],
+			note: ''
+		})) as unknown as Week
 	});
 
 	// Sync status
@@ -125,12 +132,26 @@ class SyncService {
 		}
 	}
 
+	#writeWeek(weekData: Week): void {
+		this.#syncStatus = 'pending';
+		try {
+			setStorageItem<Week>(this.WEEK_KEY, weekData);
+			this.#syncStatus = 'synced';
+		} catch (error) {
+			console.error('[SyncService] Failed to save week data:', error);
+			toastService.showToast('Failed to save week schedule');
+			this.#syncStatus = 'error';
+		}
+	}
+
 	#initState(): void {
 		const today = getTodayDateISO();
 
 		const savedSettings = getStorageItem<Partial<AppSettings>>(this.SETTINGS_KEY);
 		const savedData =
 			this.loadDateState(today) ?? getStorageItem<Partial<AppDataState>>(this.STORAGE_KEY);
+
+		const savedWeek = this.loadWeek();
 
 		this.appState = {
 			tasks: savedData?.tasks ?? DEFAULT_TASKS,
@@ -139,7 +160,8 @@ class SyncService {
 			theme: savedSettings?.theme ?? 'system',
 			showTimeline: savedSettings?.showTimeline ?? true,
 			dayStart: savedData?.dayStart ?? 8,
-			dayEnd: savedData?.dayEnd ?? 22
+			dayEnd: savedData?.dayEnd ?? 22,
+			week: savedWeek
 		};
 
 		taskService.init(this.appState.tasks);
@@ -185,6 +207,7 @@ class SyncService {
 		const localRef = { value: this.#localTimer };
 		const cloudRef = { value: this.#cloudTimer };
 		const settingsRef = { value: this.#settingsTimer };
+		const weekRef = { value: this.#weekTimer };
 
 		// Pipeline 1: tasks
 		$effect(() => {
@@ -223,6 +246,19 @@ class SyncService {
 			});
 
 			this.#settingsTimer = settingsRef.value;
+		});
+
+		// 👈 Pipeline 3: Week schedule sync
+		// Using JSON serialization here forces Svelte to deep-read the entire week object structure,
+		// ensuring mutations deep inside nested days/tasks flag the dependency correctly.
+		$effect(() => {
+			const weekSnapshot = JSON.parse(JSON.stringify(this.appState.week));
+
+			this.#debounce(weekRef, this.LOCAL_DEBOUNCE_MS, () => {
+				this.#writeWeek(weekSnapshot);
+			});
+
+			this.#weekTimer = weekRef.value;
 		});
 	}
 

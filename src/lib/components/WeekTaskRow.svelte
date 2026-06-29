@@ -23,7 +23,7 @@
 		<span class="font-mono text-[11px] font-medium shrink-0 tabular-nums" style:color={task.color}
 			>{formatHours(task.hours)}</span
 		>
-		<Button iconOnly outline size="sm"
+		<Button onclick={() => onDelete(task.id)} iconOnly outline size="sm"
 			><svg
 				width="14"
 				height="14"
@@ -43,5 +43,6 @@
 		max={Math.max(task.hours, 12)}
 		step={snapSize}
 		locked={false}
+		onChange={onHoursChange}
 	/>
 </div>

@@ -8,6 +8,7 @@
 	import Button from './Button.svelte';
 	import Input from './Input.svelte';
 	import WeekTaskRow from './WeekTaskRow.svelte';
+	import { PALETTE } from '$lib/constants/colors';
 
 	interface Props {
 		dayData: WeekDay;
@@ -15,10 +16,17 @@
 		snapSize: number;
 		todayTasks: Task[];
 		isToday: boolean;
-		onUpdate: (patch) => void;
+		onUpdate: (patch: Partial<WeekDay>) => void;
 	}
 
-	let { dayData, dayIndex, snapSize, todayTasks, isToday = false, onUpdate }: Props = $props();
+	let {
+		dayData = $bindable(),
+		dayIndex,
+		snapSize,
+		todayTasks,
+		isToday = false,
+		onUpdate
+	}: Props = $props();
 
 	const total = $derived(weekTotalHours(dayData));
 	const taskCount = $derived(dayData.tasks.length);
@@ -26,6 +34,53 @@
 
 	const segments = $derived(dayData.tasks.filter((task) => task.hours > 0));
 	const segmentsTotal = $derived(segments.reduce((sum, task) => sum + task.hours, 0));
+
+	let taskName = $state('');
+
+	function addTask() {
+		const name = taskName.trim();
+		if (!name) return;
+
+		const color = PALETTE[dayData.tasks.length % PALETTE.length].color;
+		const newTask: Task = {
+			id: String(Date.now() + Math.random()),
+			name,
+			hours: 1,
+			originalHours: 1,
+			color,
+			locked: false,
+			actual: 0
+		};
+
+		onUpdate?.({ tasks: [...dayData.tasks, newTask] });
+		taskName = '';
+	}
+
+	function copyFromToday() {
+		if (!todayTasks.length) return;
+		const copied = todayTasks.map((task) => ({
+			...task,
+			id: String(Date.now() + Math.random()),
+			done: false
+		}));
+		onUpdate?.({ tasks: copied });
+	}
+
+	function handleOnKeyDown(e: KeyboardEvent) {
+		if (e.key === 'Enter') addTask();
+	}
+
+	function updateTaskHours(id: string, hours: number) {
+		onUpdate?.({
+			tasks: dayData.tasks.map((task) =>
+				task.id === id ? { ...task, hours, originalHours: hours } : task
+			)
+		});
+	}
+
+	function deleteTask(id: string) {
+		onUpdate?.({ tasks: dayData.tasks.filter((task) => task.id !== id) });
+	}
 </script>
 
 <div
@@ -120,20 +175,30 @@
 				{#if taskCount > 0}
 					<div class="mb-3">
 						{#each dayData.tasks as task (task.id)}
-							<WeekTaskRow {task} {snapSize} />
+							<WeekTaskRow
+								{task}
+								{snapSize}
+								onHoursChange={(hours: number) => updateTaskHours(task.id, hours)}
+								onDelete={deleteTask}
+							/>
 						{/each}
 					</div>
 				{/if}
 				<div class="flex gap-2 mb-2.5">
-					<Input class="min-h-10.5 text-[14px]" placeholder="Add a task..." />
-					<Button color="accent">Add</Button>
+					<Input
+						onkeydown={handleOnKeyDown}
+						bind:value={taskName}
+						class="min-h-10.5 text-[14px]"
+						placeholder="Add a task..."
+					/>
+					<Button onclick={addTask} color="accent">Add</Button>
 				</div>
 				<div class="flex gap-1.5 flex-wrap mb-2.5">
 					{#if todayTasks.length > 0}
-						<Button>Copy from today</Button>
+						<Button onclick={copyFromToday} size="sm">Copy from today</Button>
 					{/if}
 					{#if taskCount > 0}
-						<Button>Clear all</Button>
+						<Button onclick={() => onUpdate?.({ tasks: [] })} size="sm">Clear all</Button>
 					{/if}
 				</div>
 				<textarea

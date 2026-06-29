@@ -4,7 +4,7 @@
 	import Tab from './Tab.svelte';
 	import TabPanel from './TabPanel.svelte';
 	import { weekTotalHours } from '$lib/utils/dateUtils';
-	import type { Week } from '$lib/types/week';
+	import type { Week, WeekDay } from '$lib/types/week';
 	import { syncService } from '$lib/services/SyncService.svelte';
 	import { formatHours } from '$lib/utils/formatUtils';
 	import DayCard from './DayCard.svelte';
@@ -21,11 +21,18 @@
 
 	let { activeDate, todayTasks, snapSize, onDateSelect }: Props = $props();
 
-	let week: Week = $state(syncService.loadWeek());
 	const todayDowRaw = new Date().getDay();
 	const todayDow = todayDowRaw === 0 ? 6 : todayDowRaw - 1;
-	const weekTotal = week.reduce((sum, weekday) => sum + weekTotalHours(weekday), 0);
-	const filledDays = week.filter((weekday) => weekday.tasks.length > 0).length;
+	const weekTotal = $derived(
+		syncService.appState.week.reduce((sum, weekday) => sum + weekTotalHours(weekday), 0)
+	);
+	const filledDays = $derived(
+		syncService.appState.week.filter((weekday) => weekday.tasks.length > 0).length
+	);
+
+	function updateDay(index: number, patch: Partial<WeekDay>): void {
+		syncService.appState.week[index] = { ...syncService.appState.week[index], ...patch };
+	}
 </script>
 
 <Tabs activeTab="week">
@@ -41,7 +48,7 @@
 			>
 				<div>
 					<div
-						class="tabular-nums text-[22px] font-semibold text-accent leading-none tracking-[-0.02em]"
+						class="tabular-nums min-w-[120px] text-[22px] font-semibold text-accent leading-none tracking-[-0.02em]"
 					>
 						{formatHours(weekTotal)}
 					</div>
@@ -50,7 +57,7 @@
 					</div>
 				</div>
 				<div class="flex-1 h-2 rounded-[4px] overflow-hidden flex bg-bg-track">
-					{#each week as weekday, i (weekday.dayIndex)}
+					{#each syncService.appState.week as weekday, i (weekday.dayIndex)}
 						{@const totalHours = weekTotalHours(weekday)}
 						{@const width = weekTotal > 0 ? (totalHours / weekTotal) * 100 : 100 / 7}
 						{@const color = weekday.tasks[0]?.color || 'var(--bg-track)'}
@@ -72,13 +79,14 @@
 				</div>
 			</div>
 			<div class="flex flex-col gap-2">
-				{#each week as weekday (weekday.dayIndex)}
+				{#each syncService.appState.week as weekday (weekday.dayIndex)}
 					<DayCard
-						dayData={weekday}
+						bind:dayData={syncService.appState.week[weekday.dayIndex]}
 						dayIndex={weekday.dayIndex}
 						{todayTasks}
 						{snapSize}
 						isToday={weekday.dayIndex === todayDow}
+						onUpdate={(patch) => updateDay(weekday.dayIndex, patch)}
 					/>
 				{/each}
 			</div>
