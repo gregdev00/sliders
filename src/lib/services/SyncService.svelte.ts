@@ -15,13 +15,13 @@ export interface AppSettings {
 	stepSize: number;
 	theme: theme;
 	showTimeline: boolean;
-	dayStart: number;
-	dayEnd: number;
 	favourites: any[];
 }
 
 export interface AppDataState {
 	tasks: Task[];
+	dayStart: number;
+	dayEnd: number;
 }
 
 /**
@@ -51,6 +51,8 @@ class SyncService {
 	#localTimer: ReturnType<typeof setTimeout> | null = null;
 	#cloudTimer: ReturnType<typeof setTimeout> | null = null;
 	#settingsTimer: ReturnType<typeof setTimeout> | null = null;
+
+	#isSwitching = false;
 
 	// App state (single source of truth)
 	// Lives here so the page never has to manage or pass settings around.
@@ -109,8 +111,8 @@ class SyncService {
 
 	#writeSettings(): void {
 		// Extract only the settings fields from appState – tasks are saved separately
-		const { stepSize, theme, showTimeline, dayStart, dayEnd, favourites } = this.appState;
-		const settings: AppSettings = { stepSize, theme, showTimeline, dayStart, dayEnd, favourites };
+		const { stepSize, theme, showTimeline, favourites } = this.appState;
+		const settings: AppSettings = { stepSize, theme, showTimeline, favourites };
 
 		this.#syncStatus = 'pending';
 		try {
@@ -136,8 +138,8 @@ class SyncService {
 			stepSize: savedSettings?.stepSize ?? 15,
 			theme: savedSettings?.theme ?? 'system',
 			showTimeline: savedSettings?.showTimeline ?? true,
-			dayStart: savedSettings?.dayStart ?? 8,
-			dayEnd: savedSettings?.dayEnd ?? 22
+			dayStart: savedData?.dayStart ?? 8,
+			dayEnd: savedData?.dayEnd ?? 22
 		};
 
 		taskService.init(this.appState.tasks);
@@ -188,9 +190,12 @@ class SyncService {
 		$effect(() => {
 			const tasks: Task[] = JSON.parse(JSON.stringify(taskService.tasks));
 			const date = getDate();
+			const { dayStart, dayEnd } = this.appState;
+
+			if (this.#isSwitching) return;
 
 			this.#debounce(localRef, this.LOCAL_DEBOUNCE_MS, () => {
-				this.saveDayState(date, { tasks });
+				this.saveDayState(date, { tasks, dayStart, dayEnd });
 			});
 
 			this.#debounce(cloudRef, this.CLOUD_DEBOUNCE_MS, () => {
@@ -211,8 +216,6 @@ class SyncService {
 			void this.appState.stepSize;
 			void this.appState.theme;
 			void this.appState.showTimeline;
-			void this.appState.dayStart;
-			void this.appState.dayEnd;
 			void this.appState.favourites;
 
 			this.#debounce(settingsRef, this.LOCAL_DEBOUNCE_MS, () => {
@@ -221,6 +224,13 @@ class SyncService {
 
 			this.#settingsTimer = settingsRef.value;
 		});
+	}
+
+	beginSwitch() {
+		this.#isSwitching = true;
+	}
+	endSwitch() {
+		this.#isSwitching = false;
 	}
 
 	/**

@@ -36,6 +36,7 @@
 	import Accordion from '$lib/components/Accordion.svelte';
 	import clsx from 'clsx';
 	import { syncService } from '$lib/services/SyncService.svelte';
+	import { tick } from 'svelte';
 
 	let helpModalOpen = $state(false);
 	let editModalOpen = $state(false);
@@ -73,10 +74,10 @@
 	syncService.startAutoSync(() => activeDate);
 
 	let selectedTaskId: string | null = $state(null);
-	let dayStart = $state(8);
-	let dayEnd = $state(22);
 	let nowHour = $derived(currentDateTime.getHours());
-	let dayLen = $derived(calculateDayLen(dayStart, dayEnd));
+	let dayLen = $derived(
+		calculateDayLen(syncService.appState.dayStart, syncService.appState.dayEnd)
+	);
 	const total = $derived(taskService.tasks.reduce((sum, task) => sum + task.hours, 0));
 	const remaining = $derived(dayLen - total);
 	const over = $derived(remaining < -TIME_PRECISION_CONFIG.HOUR_MATCH_TOLERANCE);
@@ -92,19 +93,20 @@
 	const inWindow = $derived(
 		(() => {
 			if (!isToday) return false;
-			if (dayEnd >= dayStart) return nowHour >= dayStart && nowHour < dayEnd;
-			return nowHour >= dayStart || nowHour < dayEnd;
+			if (syncService.appState.dayEnd >= syncService.appState.dayStart)
+				return nowHour >= syncService.appState.dayStart && nowHour < syncService.appState.dayEnd;
+			return nowHour >= syncService.appState.dayStart || nowHour < syncService.appState.dayEnd;
 		})()
 	);
 
 	const activeIndex = $derived(
 		(() => {
 			if (!inWindow || !taskService.tasks.length) return -1;
-			let cursor = dayStart;
+			let cursor = syncService.appState.dayStart;
 			for (let i = 0; i < taskService.tasks.length; i++) {
 				const next = cursor + (taskService.tasks[i].hours || 0);
 				const within =
-					dayEnd >= dayStart
+					syncService.appState.dayEnd >= syncService.appState.dayStart
 						? nowHour >= cursor && nowHour < next
 						: (nowHour - cursor + 24) % 24 < (taskService.tasks[i].hours || 0);
 				if (within) return i;
@@ -116,11 +118,14 @@
 
 	const activeProgress = $derived.by(() => {
 		if (activeIndex < 0) return 0;
-		let cursor = dayStart;
+		let cursor = syncService.appState.dayStart;
 		for (let i = 0; i < activeIndex; i++) cursor += taskService.tasks[i].hours || 0;
 		const len = taskService.tasks[activeIndex].hours || 0;
 		if (len <= 0) return 0;
-		const into = dayEnd >= dayStart ? nowHour - cursor : (nowHour - cursor + 24) % 24;
+		const into =
+			syncService.appState.dayEnd >= syncService.appState.dayStart
+				? nowHour - cursor
+				: (nowHour - cursor + 24) % 24;
 		return Math.max(0, Math.min(1, into / len));
 	});
 
@@ -139,7 +144,7 @@
 			(Math.ceil(m / syncService.appState.stepSize) * syncService.appState.stepSize) / 60,
 			23.5
 		);
-		setDayWindow(newStart, dayEnd);
+		setDayWindow(newStart, syncService.appState.dayEnd);
 		toastService.showToast('Start = now');
 	}
 
@@ -159,26 +164,57 @@
 	}
 
 	function onSchedule() {
-		console.log(`Scheduled to ${scheduleDate}`);
+		if (!editTask || !scheduleDate) return;
+
+		// Save the target day's current state, then append the task
+		const targetLoaded = syncService.loadDateState(scheduleDate as ISODateString);
+		const targetTasks = targetLoaded?.tasks ?? [];
+
+		syncService.saveDayState(scheduleDate as ISODateString, {
+			tasks: [...targetTasks, { ...editTask, id: crypto.randomUUID() }]
+		});
+
+		// Remove from current day
+		taskService.removeTask(editTask.id);
+
+		// Close modal and notify
+		toastService.showToast(`Moved to ${formatDateToUltraShortLabel(scheduleDate)}`);
+		editTask = null;
+		editModalOpen = false;
 	}
 
 	function setDayWindow(start: number, end: number) {
 		const newDayLen = calculateDayLen(start, end);
 		if (newDayLen < 0.5) return;
 
-		const oldDayLen = calculateDayLen(dayStart, dayEnd);
-		console.log({ dayStart, dayEnd, oldDayLen, newDayLen });
+		const oldDayLen = calculateDayLen(syncService.appState.dayStart, syncService.appState.dayEnd);
 		taskService.scaleToDayLen(newDayLen, oldDayLen);
 
-		dayStart = start;
-		dayEnd = end;
+		syncService.appState.dayStart = start;
+		syncService.appState.dayEnd = end;
 	}
 
 	function switchDate(dateString: ISODateString, isToday: boolean = false) {
+		syncService.beginSwitch();
+
+		// save current day
+		syncService.saveDayState(activeDate, { tasks: taskService.tasks });
+
+		// load new day
+		const loaded = syncService.loadDateState(dateString);
+		taskService.init(loaded?.tasks ?? []);
+
+		syncService.appState.dayStart = loaded?.dayStart ?? 8;
+		syncService.appState.dayEnd = loaded?.dayEnd ?? 22;
+
+		// switch the date
 		activeDate = dateString;
 		activeView = isToday ? 'today' : 'custom-day';
 		editTask = null;
 		selectedTaskId = null;
+
+		// 4. A következő tick után engedd vissza az effect-et
+		tick().then(() => syncService.endSwitch());
 	}
 
 	function saveEditModal() {
@@ -206,12 +242,17 @@
 					class="relative"
 					style={`width: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px; height: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px;`}
 				>
-					<CircularSlider {dayStart} {dayEnd} {nowHour} onChange={setDayWindow} />
+					<CircularSlider
+						dayStart={syncService.appState.dayStart}
+						dayEnd={syncService.appState.dayEnd}
+						{nowHour}
+						onChange={setDayWindow}
+					/>
 					<Donut
 						tasks={taskService.tasks}
 						{total}
 						isOver={over}
-						{dayStart}
+						dayStart={syncService.appState.dayStart}
 						{dayLen}
 						selectedId={selectedTaskId}
 						{onSelectTask}
@@ -221,7 +262,7 @@
 					<div
 						class="font-mono text-[11px] font-medium text-text-3 bg-bg-elev-2 border border-border rounded-md px-1.5 py-0.5 tabular-nums"
 					>
-						{formatTime(dayStart)} → {formatTime(dayEnd)}
+						{formatTime(syncService.appState.dayStart)} → {formatTime(syncService.appState.dayEnd)}
 					</div>
 					<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
 					<div class="text-[13px] text-text-2 tabular-nums min-w-12.5 text-center">
@@ -246,7 +287,7 @@
 			</div>
 			{#if syncService.appState.showTimeline && taskService.tasks.length > 0}
 				<div class="bg-bg-elev border border-border rounded-main p-3.5 mb-4">
-					<Timeline tasks={taskService.tasks} {dayLen} {dayStart} />
+					<Timeline tasks={taskService.tasks} {dayLen} dayStart={syncService.appState.dayStart} />
 				</div>
 			{/if}
 		</div>
@@ -263,7 +304,7 @@
 					{isToday}
 					{activeIndex}
 					{activeProgress}
-					{dayStart}
+					dayStart={syncService.appState.dayStart}
 					{dayLen}
 					stepMinutes={syncService.appState.stepSize}
 					{handleOnEdit}
