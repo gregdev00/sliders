@@ -153,7 +153,6 @@
 	}
 
 	function onSelectTask(id: string | null) {
-		console.log(id);
 		selectedTaskId = id;
 	}
 
@@ -216,7 +215,6 @@
 		editTask = null;
 		selectedTaskId = null;
 
-		// 4. A következő tick után engedd vissza az effect-et
 		tick().then(() => syncService.endSwitch());
 	}
 
@@ -237,13 +235,13 @@
 
 {#snippet dayLayoutContent()}
 	<div class="grid desktop:grid-cols-[380px_1fr] desktop:gap-6 items-start px-5 py-4">
-		<div class="max-desktop:top-32.5 max-desktop:self-start">
+		<div class="max-desktop:top-32.5 max-desktop:self-start min-w-0">
 			<div
 				class="flex flex-col items-center gap-2 bg-bg-elev border border-border rounded-main p-5 mb-4"
 			>
 				<div
-					class="relative"
-					style={`width: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px; height: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px;`}
+					class="relative w-full aspect-square"
+					style={`max-width: ${CIRCULAR_SLIDER_CONFIG.RING_SIZE}px;`}
 				>
 					<CircularSlider
 						dayStart={syncService.appState.dayStart}
@@ -261,31 +259,42 @@
 						{onSelectTask}
 					/>
 				</div>
-				<div class="flex items-center gap-2.5 mt-1.5 flex-wrap justify-center">
+				<div class="flex flex-col md:flex-row items-center gap-3 mt-1.5 justify-center">
 					<div
-						class="font-mono text-[11px] font-medium text-text-3 bg-bg-elev-2 border border-border rounded-md px-1.5 py-0.5 tabular-nums"
+						class="font-mono text-[11px] font-medium text-text-3 bg-bg-elev-2 border border-border rounded-md px-1.5 py-0.5 tabular-nums text-center w-full md:w-auto"
 					>
 						{formatTime(syncService.appState.dayStart)} → {formatTime(syncService.appState.dayEnd)}
 					</div>
-					<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
-					<div class="text-[13px] text-text-2 tabular-nums min-w-12.5 text-center">
+
+					<div class="hidden md:block text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
+
+					<div class="text-[13px] text-text-2 tabular-nums min-w-12.5 text-center w-full md:w-auto">
 						{formatHours(dayLen)}
 					</div>
-					<div class="text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
-					<Button size="sm" outline onclick={startNow} class="min-h-32">
-						<svg
-							width="14"
-							height="14"
-							viewBox="0 0 24 24"
-							fill="none"
-							stroke="currentColor"
-							stroke-width="2"
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg
+
+					<div class="hidden md:block text-[12px] text-text-3 w-1.5 text-center select-none">·</div>
+
+					<div class="w-full md:w-auto flex justify-center">
+						<Button
+							size="sm"
+							outline
+							onclick={startNow}
+							class="w-full md:w-auto justify-center min-h-32"
 						>
-						Start now
-					</Button>
+							<svg
+								width="14"
+								height="14"
+								viewBox="0 0 24 24"
+								fill="none"
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg
+							>
+							Start now
+						</Button>
+					</div>
 				</div>
 			</div>
 			{#if syncService.appState.showTimeline && taskService.tasks.length > 0}

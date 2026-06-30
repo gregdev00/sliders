@@ -210,11 +210,10 @@
 	aria-valuetext="asd"
 	tabindex="0"
 	class="block overflow-visible"
-	width={sliderConfig.RING_SIZE}
-	height={sliderConfig.RING_SIZE}
 	onpointerup={onUp}
 	onpointermove={onMove}
 	style="outline: none; touch-action: none;"
+	viewBox={`0 0 ${sliderConfig.RING_SIZE} ${sliderConfig.RING_SIZE}`}
 >
 	<!-- Outer track -->
 	<circle

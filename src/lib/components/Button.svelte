@@ -60,7 +60,7 @@
 
 			sizeSpecs[size],
 
-			iconOnly ? ['p-0 shrink-0', iconSizes[size]] : [minHeights[size], paddings[size]],
+			iconOnly ? ['p-0', iconSizes[size]] : [minHeights[size], paddings[size]],
 
 			// Ghost variant — no border, no background, just a hover fill
 			ghost && {

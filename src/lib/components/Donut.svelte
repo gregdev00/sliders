@@ -38,8 +38,7 @@
 	}
 
 	type DonutSlice =
-		| (Task & { isFree?: false })
-		| { id: string; hours: number; color: string; isFree: true };
+		(Task & { isFree?: false }) | { id: string; hours: number; color: string; isFree: true };
 
 	let animatedAngles = $state<Record<string, AngleState>>({});
 	let targetAngles = $state<Record<string, AngleState>>({});
@@ -169,9 +168,8 @@
 </script>
 
 <svg
-	class="absolute top-0 left-0"
-	width={sliderConfig.RING_SIZE}
-	height={sliderConfig.RING_SIZE}
+	class="block absolute top-0 left-0"
+	viewBox={`0 0 ${sliderConfig.RING_SIZE} ${sliderConfig.RING_SIZE}`}
 	style="pointer-events: none;"
 >
 	<g style="pointer-events: auto;">
