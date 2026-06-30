@@ -111,7 +111,7 @@
 	let { isToday, activeIndex, activeProgress, dayStart, dayLen, stepMinutes, handleOnEdit }: Props =
 		$props();
 
-	const LONG_PRESS_MS = 380;
+	const LONG_PRESS_MS = 300;
 
 	let longDragIdx = $state<number | null>(null);
 	let dragOver = $state<number | null>(null);
@@ -172,6 +172,7 @@
 				onpointerdown={(e) => startLongPress(index, e)}
 				onpointerup={cancelLongPress}
 				onpointercancel={cancelLongPress}
+				style:touch-action="none"
 				style:opacity={isFloating ? 0.25 : 1}
 				style:transform={isDragTarget ? 'translateY(-3px)' : isFloating ? 'scale(0.98)' : 'none'}
 				animate:flip={{ duration: 200, easing: cubicOut }}
