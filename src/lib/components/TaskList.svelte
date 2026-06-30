@@ -44,14 +44,19 @@
 	function handleOnFavourite(id: string) {}
 
 	function startLongPress(index: number, e: PointerEvent) {
-		const cx = e.clientX,
-			cy = e.clientY;
+		const cx = e.clientX;
+		const cy = e.clientY;
+
+		if (longPressTimer) clearTimeout(longPressTimer);
+
 		longPressTimer = setTimeout(() => {
 			try {
 				navigator.vibrate?.([10, 30, 10]);
 			} catch {}
+
 			longDragIdx = index;
 			dragPos = { x: cx, y: cy };
+
 			bindDragListeners();
 		}, LONG_PRESS_MS);
 	}
@@ -66,13 +71,18 @@
 	function bindDragListeners() {
 		document.body.style.overflow = 'hidden';
 
-		function onMove(e: PointerEvent) {
+		const preventScroll = (e: TouchEvent) => {
 			if (e.cancelable) e.preventDefault();
+		};
+		window.addEventListener('touchmove', preventScroll, { passive: false });
+
+		function onMove(e: PointerEvent) {
 			dragPos = { x: e.clientX, y: e.clientY };
 
 			if (!taskListEl) return;
 			const cards = taskListEl.querySelectorAll<HTMLElement>('[data-taskcard]');
 			let found: number | null = null;
+
 			for (let i = 0; i < cards.length; i++) {
 				const r = cards[i].getBoundingClientRect();
 				if (e.clientY >= r.top && e.clientY <= r.bottom) {
@@ -90,11 +100,13 @@
 			longDragIdx = null;
 			dragOver = null;
 			document.body.style.overflow = '';
+
+			window.removeEventListener('touchmove', preventScroll);
 			window.removeEventListener('pointermove', onMove);
 			window.removeEventListener('pointerup', onUp);
 		}
 
-		window.addEventListener('pointermove', onMove, { passive: false });
+		window.addEventListener('pointermove', onMove, { passive: true });
 		window.addEventListener('pointerup', onUp);
 	}
 
@@ -172,9 +184,12 @@
 				onpointerdown={(e) => startLongPress(index, e)}
 				onpointerup={cancelLongPress}
 				onpointercancel={cancelLongPress}
-				style:touch-action="none"
+				oncontextmenu={(e) => e.preventDefault()}
 				style:opacity={isFloating ? 0.25 : 1}
 				style:transform={isDragTarget ? 'translateY(-3px)' : isFloating ? 'scale(0.98)' : 'none'}
+				style:touch-action={isFloating ? 'none' : 'pan-y'}
+				style:user-select={isFloating ? 'none' : 'auto'}
+				style:-webkit-user-select={isFloating ? 'none' : 'auto'}
 				animate:flip={{ duration: 200, easing: cubicOut }}
 				transition:slide={{ duration: 150, easing: cubicOut }}
 			>
